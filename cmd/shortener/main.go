@@ -53,7 +53,7 @@ func encodeLink(response http.ResponseWriter, request *http.Request) {
 	if request.Method != http.MethodPost {
 		response.WriteHeader(http.StatusForbidden)
 		response.Header().Set("content-type", "text/plain")
-		body := fmt.Sprintf("Method not allowed")
+		body := "Method not allowed"
 		_, err := response.Write([]byte(body))
 		if err != nil {
 			panic(err)
