@@ -3,9 +3,9 @@ package main
 import (
 	"fmt"
 	"github.com/MagicNetLab/ya-practicum-shortener/internal/app/shortgen"
+	"github.com/go-chi/chi/v5"
 	"io"
 	"net/http"
-	"strings"
 )
 
 var linkStore = make(map[string]string)
@@ -31,14 +31,13 @@ func runServer() error {
 	return nil
 }
 
-func routerInit() (*http.ServeMux, error) {
+func routerInit() (*chi.Mux, error) {
 
-	route := http.NewServeMux()
+	r := chi.NewRouter()
+	r.Post(`/`, encodeLinkHeader)
+	r.Get(`/{short}`, decodeLinkHeader)
 
-	route.HandleFunc(`/`, encodeLinkHeader)
-	route.HandleFunc(`/sl/`, decodeLinkHeader)
-
-	return route, nil
+	return r, nil
 }
 
 func encodeLinkHeader(response http.ResponseWriter, request *http.Request) {
@@ -76,7 +75,7 @@ func encodeLinkHeader(response http.ResponseWriter, request *http.Request) {
 
 	response.Header().Set("content-type", "text/plain")
 	response.WriteHeader(http.StatusCreated)
-	body := fmt.Sprintf("http://localhost:8080/sl/%s", short)
+	body := fmt.Sprintf("http://localhost:8080/%s", short)
 	_, err = response.Write([]byte(body))
 	if err != nil {
 		panic(err)
@@ -95,7 +94,7 @@ func decodeLinkHeader(resp http.ResponseWriter, req *http.Request) {
 		return
 	}
 
-	short := strings.ReplaceAll(req.RequestURI, "/sl/", "")
+	short := chi.URLParam(req, "short")
 
 	link, ok := linkStore[short]
 	if !ok {
