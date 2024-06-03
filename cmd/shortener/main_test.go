@@ -120,6 +120,8 @@ func Test_decodeLinkHeader(t *testing.T) {
 			h(w, request)
 
 			result := w.Result()
+			err := result.Body.Close()
+			require.NoError(t, err)
 
 			assert.Equal(t, tt.want.statusCode, result.StatusCode)
 		})
