@@ -43,8 +43,8 @@ func routerInit() (*http.ServeMux, error) {
 
 func encodeLinkHeader(response http.ResponseWriter, request *http.Request) {
 	if request.Method != http.MethodPost {
-		response.WriteHeader(http.StatusForbidden)
 		response.Header().Set("content-type", "text/plain")
+		response.WriteHeader(http.StatusForbidden)
 		body := "Method not allowed"
 		_, err := response.Write([]byte(body))
 		if err != nil {
@@ -59,12 +59,23 @@ func encodeLinkHeader(response http.ResponseWriter, request *http.Request) {
 		panic(err)
 	}
 
+	if string(link) == "" {
+		response.Header().Set("content-type", "text/plain")
+		response.WriteHeader(http.StatusBadRequest)
+		body := "Missing link"
+		_, err := response.Write([]byte(body))
+		if err != nil {
+			panic(err)
+		}
+		return
+	}
+
 	short := shortgen.GetShort(7)
 
 	linkStore[short] = string(link)
 
-	response.WriteHeader(http.StatusCreated)
 	response.Header().Set("content-type", "text/plain")
+	response.WriteHeader(http.StatusCreated)
 	body := fmt.Sprintf("http://localhost:8080/sl/%s", short)
 	_, err = response.Write([]byte(body))
 	if err != nil {
@@ -73,6 +84,16 @@ func encodeLinkHeader(response http.ResponseWriter, request *http.Request) {
 }
 
 func decodeLinkHeader(resp http.ResponseWriter, req *http.Request) {
+	if req.Method != http.MethodGet {
+		resp.Header().Set("content-type", "text/plain")
+		resp.WriteHeader(http.StatusForbidden)
+		body := "Method not allowed"
+		_, err := resp.Write([]byte(body))
+		if err != nil {
+			panic(err)
+		}
+		return
+	}
 
 	short := strings.ReplaceAll(req.RequestURI, "/sl/", "")
 
