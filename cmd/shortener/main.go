@@ -35,21 +35,13 @@ func routerInit() (*http.ServeMux, error) {
 
 	route := http.NewServeMux()
 
-	route.HandleFunc(`/`, defaultHandler)
+	route.HandleFunc(`/`, encodeLinkHeader)
+	route.HandleFunc(`/sl/`, decodeLinkHeader)
 
 	return route, nil
 }
 
-func defaultHandler(resp http.ResponseWriter, req *http.Request) {
-	if req.RequestURI == string('/') {
-		encodeLink(resp, req)
-		return
-	}
-
-	decodeLink(resp, req)
-}
-
-func encodeLink(response http.ResponseWriter, request *http.Request) {
+func encodeLinkHeader(response http.ResponseWriter, request *http.Request) {
 	if request.Method != http.MethodPost {
 		response.WriteHeader(http.StatusForbidden)
 		response.Header().Set("content-type", "text/plain")
@@ -73,16 +65,16 @@ func encodeLink(response http.ResponseWriter, request *http.Request) {
 
 	response.WriteHeader(http.StatusCreated)
 	response.Header().Set("content-type", "text/plain")
-	body := fmt.Sprintf("http://localhost:8080/%s", short)
+	body := fmt.Sprintf("http://localhost:8080/sl/%s", short)
 	_, err = response.Write([]byte(body))
 	if err != nil {
 		panic(err)
 	}
 }
 
-func decodeLink(resp http.ResponseWriter, req *http.Request) {
+func decodeLinkHeader(resp http.ResponseWriter, req *http.Request) {
 
-	short := strings.ReplaceAll(req.RequestURI, "/", "")
+	short := strings.ReplaceAll(req.RequestURI, "/sl/", "")
 
 	link, ok := linkStore[short]
 	if !ok {
