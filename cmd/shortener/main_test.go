@@ -54,7 +54,7 @@ func Test_encodeLinkHeader(t *testing.T) {
 			want: want{
 				contentType: "text/plain",
 				statusCode:  http.StatusCreated,
-				body:        "http://localhost:8080/",
+				body:        "http://" + ShortHost + ":" + ShortPort,
 			},
 			request: "/",
 		},

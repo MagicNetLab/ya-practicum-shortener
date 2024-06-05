@@ -5,39 +5,41 @@ import (
 	"github.com/MagicNetLab/ya-practicum-shortener/internal/app/shortgen"
 	"github.com/go-chi/chi/v5"
 	"io"
+	"log"
 	"net/http"
 )
 
 var linkStore = make(map[string]string)
 
 func main() {
-	err := runServer()
+	ParseInitFlag()
+	err := runServer(AppFlags)
 	if err != nil {
 		panic(err)
 	}
 }
 
-func runServer() error {
-	route, err := routerInit()
+func runServer(flags AppFlagsStruct) error {
+
+	baseRoute, shortRoute, err := routerInit()
 	if err != nil {
 		return err
 	}
 
-	err = http.ListenAndServe(`localhost:8080`, route)
-	if err != nil {
-		return err
-	}
-
-	return nil
+	go func() { log.Fatal(http.ListenAndServe(flags.GetBaseAddress(), baseRoute)) }()
+	go func() { log.Fatal(http.ListenAndServe(flags.GetShortAddress(), shortRoute)) }()
+	select {}
 }
 
-func routerInit() (*chi.Mux, error) {
+func routerInit() (*chi.Mux, *chi.Mux, error) {
 
-	r := chi.NewRouter()
-	r.Post(`/`, encodeLinkHeader)
-	r.Get(`/{short}`, decodeLinkHeader)
+	baseRoute := chi.NewRouter()
+	baseRoute.Post(`/`, encodeLinkHeader)
 
-	return r, nil
+	shortRoute := chi.NewRouter()
+	shortRoute.Get(`/{short}`, decodeLinkHeader)
+
+	return baseRoute, shortRoute, nil
 }
 
 func encodeLinkHeader(response http.ResponseWriter, request *http.Request) {
@@ -75,7 +77,7 @@ func encodeLinkHeader(response http.ResponseWriter, request *http.Request) {
 
 	response.Header().Set("content-type", "text/plain")
 	response.WriteHeader(http.StatusCreated)
-	body := fmt.Sprintf("http://localhost:8080/%s", short)
+	body := fmt.Sprintf("http://%s/%s", AppFlags.GetShortAddress(), short)
 	_, err = response.Write([]byte(body))
 	if err != nil {
 		panic(err)
