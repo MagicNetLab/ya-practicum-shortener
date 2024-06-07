@@ -1,17 +1,17 @@
-package main
+package handlers
 
 import (
+	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 	"io"
 	"net/http"
 	"net/http/httptest"
 	"strings"
 	"testing"
-
-	"github.com/stretchr/testify/assert"
-	"github.com/stretchr/testify/require"
 )
 
 func Test_encodeLinkHeader(t *testing.T) {
+
 	type want struct {
 		contentType string
 		statusCode  int
@@ -54,7 +54,7 @@ func Test_encodeLinkHeader(t *testing.T) {
 			want: want{
 				contentType: "text/plain",
 				statusCode:  http.StatusCreated,
-				body:        "http://" + ShortHost + ":" + ShortPort,
+				body:        "http://localhost:8080/",
 			},
 			request: "/",
 		},
@@ -108,7 +108,7 @@ func Test_decodeLinkHeader(t *testing.T) {
 			want: want{
 				statusCode: http.StatusNotFound,
 			},
-			request: "/sl/jsdhkahs",
+			request: "/jsdhkahs",
 		},
 	}
 
