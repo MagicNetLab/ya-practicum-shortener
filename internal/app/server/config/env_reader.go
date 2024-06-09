@@ -4,77 +4,79 @@ import (
 	"errors"
 	"github.com/caarlos0/env/v6"
 	"github.com/joho/godotenv"
+	"log"
 	"os"
 	"strings"
 )
 
-type EnvConfType struct {
+type EnvConfig struct {
 	baseHost  []string `env:"SERVER_ADDRESS" envSeparator:":"`
 	shortHost []string `env:"BASE_URL" envSeparator:":"`
 }
 
-var envConf = EnvConfType{}
+var envConf = EnvConfig{}
 
-func (e *EnvConfType) HasBaseHost() bool {
-	return len(envConf.baseHost) == 2
+func (e *EnvConfig) HasBaseHost() bool {
+	return len(e.baseHost) == 2
 }
 
-func (e *EnvConfType) HasShortHost() bool {
-	return len(envConf.shortHost) == 2
+func (e *EnvConfig) HasShortHost() bool {
+	return len(e.shortHost) == 2
 }
 
-func (e *EnvConfType) GetBaseHost() (string, error) {
-	if len(envConf.baseHost) != 2 {
+func (e *EnvConfig) GetBaseHost() (string, error) {
+	if !e.HasBaseHost() {
 		return "", errors.New("base host not init in env")
 	}
 
-	if envConf.baseHost[0] == "" {
+	if e.baseHost[0] == "" {
 		return "", errors.New("base host is empty")
 	}
 
-	return envConf.baseHost[0], nil
+	return e.baseHost[0], nil
 }
 
-func (e *EnvConfType) GetBasePort() (string, error) {
-	if len(envConf.baseHost) != 2 {
+func (e *EnvConfig) GetBasePort() (string, error) {
+	if e.HasBaseHost() {
 		return "", errors.New("base host not init in env")
 	}
 
-	if envConf.baseHost[0] == "" {
+	if e.baseHost[0] == "" {
 		return "", errors.New("base port is empty")
 	}
 
-	return envConf.baseHost[1], nil
+	return e.baseHost[1], nil
 }
 
-func (e *EnvConfType) GetShortHostString() (string, error) {
-	if len(envConf.shortHost) != 2 {
+func (e *EnvConfig) GetShortHostString() (string, error) {
+	if !e.HasShortHost() {
 		return "", errors.New("base host not init in env")
 	}
 
-	return strings.Join(envConf.shortHost, ":"), nil
+	return strings.Join(e.shortHost, ":"), nil
 }
 
-func (e *EnvConfType) GetShortHost() (string, error) {
-	if len(envConf.shortHost) != 2 {
+func (e *EnvConfig) GetShortHost() (string, error) {
+	if !e.HasShortHost() {
 		return "", errors.New("base host not init in env")
 	}
 
-	return envConf.shortHost[0], nil
+	return e.shortHost[0], nil
 }
 
-func (e *EnvConfType) GetShortPort() (string, error) {
-	if len(envConf.shortHost) != 2 {
+func (e *EnvConfig) GetShortPort() (string, error) {
+	if !e.HasShortHost() {
 		return "", errors.New("base host not init in env")
 	}
 
-	return envConf.shortHost[1], nil
+	return e.shortHost[1], nil
 }
 
-func ReadEnv() (EnvConfType, error) {
+func ReadEnv() (EnvConfig, error) {
 	if err := godotenv.Load(".env"); err != nil {
 		err := env.Parse(&envConf)
 		if err != nil {
+			log.Printf("Failed to parse .env file: %s", err)
 			return envConf, err
 		}
 

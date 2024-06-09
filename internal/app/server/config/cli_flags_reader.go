@@ -6,10 +6,15 @@ import (
 	"strings"
 )
 
+const (
+	defaultHostKey = "a"
+	shortHostKey   = "b"
+)
+
 var defaultHost = ""
 var shortHost = ""
 
-type CliConfInterface interface {
+type CliConfigurator interface {
 	HasDefaultHost() bool
 	GetDefaultHost() (string, error)
 	GetDefaultPort() (string, error)
@@ -67,9 +72,9 @@ func (cc *cliConf) GetShortPort() (string, error) {
 
 var conf = cliConf{}
 
-func ParseInitFlag() CliConfInterface {
-	flag.StringVar(&defaultHost, "a", "", "Base address")
-	flag.StringVar(&shortHost, "b", "", "short links host")
+func ParseInitFlags() CliConfigurator {
+	flag.StringVar(&defaultHost, defaultHostKey, "", "Base address")
+	flag.StringVar(&shortHost, shortHostKey, "", "short links host")
 	flag.Parse()
 
 	dh := strings.Split(defaultHost, ":")

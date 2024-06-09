@@ -10,6 +10,7 @@ import (
 	"testing"
 )
 
+// TODO добавить тестов
 func Test_encodeLinkHeader(t *testing.T) {
 
 	type want struct {
@@ -83,6 +84,7 @@ func Test_encodeLinkHeader(t *testing.T) {
 	}
 }
 
+// TODO добавить тестов
 func Test_decodeLinkHeader(t *testing.T) {
 	type want struct {
 		statusCode int

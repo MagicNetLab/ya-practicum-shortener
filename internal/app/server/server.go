@@ -7,7 +7,7 @@ import (
 	"net/http"
 )
 
-func RunServer(serverConfig ParamsInterface) error {
+func RunServer(serverConfig configurator) error {
 	defaultHost := serverConfig.GetDefaultHost()
 	shortHost := serverConfig.GetShortHost()
 	handlers := handle.GetHandlers()

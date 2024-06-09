@@ -1,12 +1,21 @@
 package store
 
-import "errors"
+import (
+	"errors"
+	"fmt"
+	"log"
+)
 
 type local struct {
 	store map[string]string
 }
 
 func (s *local) PutLink(link string, short string) error {
+	if link == "" || short == "" {
+		log.Printf("Faled store link: empty link(%s) or short(%s)", link, short)
+		return errors.New("incorrect params to store link")
+	}
+
 	s.store[short] = link
 
 	return nil
@@ -18,7 +27,7 @@ func (s *local) GetLink(short string) (string, error) {
 		return link, nil
 	}
 
-	return "", errors.New("short not found")
+	return "", fmt.Errorf("short %s not found", short)
 }
 
 func (s *local) HasShort(short string) bool {

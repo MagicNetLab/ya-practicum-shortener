@@ -5,6 +5,7 @@ import (
 	"strings"
 )
 
+// todo значения из конфига или env
 const (
 	defaultHostName = "localhost"
 	defaultHostPort = "8080"
@@ -12,13 +13,14 @@ const (
 	shortHostPort   = "8080"
 )
 
-type ParamsInterface interface {
+type ParameterConfig interface {
 	SetDefaultHost(host string, port string) error
 	SetShortHost(host string, port string) error
 	GetDefaultHost() string
 	GetShortHost() string
 }
 
+// TODO разделить структуру на 2 для defaultHost и shortHost
 type params struct {
 	defaultHost string
 	defaultPort string
@@ -26,16 +28,14 @@ type params struct {
 	shortPort   string
 }
 
-func (sp *params) initParams() error {
+func (sp *params) initParams() {
 	sp.defaultHost = defaultHostName
 	sp.defaultPort = defaultHostPort
 	sp.shortHost = shortHostName
 	sp.shortPort = shortHostPort
-
-	return nil
 }
 
-func (sp *params) IsInit() bool {
+func (sp *params) IsParamsAlreadySet() bool {
 	return sp.defaultHost != "" && sp.defaultPort != "" && sp.shortHost != "" && sp.shortPort != ""
 }
 
@@ -65,17 +65,14 @@ func (sp *params) GetShortHost() string {
 
 var servParams params
 
-func GetParams() ParamsInterface {
-	if servParams.IsInit() {
+func GetParams() ParameterConfig {
+	if servParams.IsParamsAlreadySet() {
 		return &servParams
 	}
 
-	err := servParams.initParams()
-	if err != nil {
-		panic(err)
-	}
+	servParams.initParams()
 
-	envConf, err = ReadEnv()
+	envConf, err := ReadEnv()
 	if err == nil {
 		if envConf.HasBaseHost() {
 			host, hostErr := envConf.GetBaseHost()
@@ -102,7 +99,7 @@ func GetParams() ParamsInterface {
 		}
 	}
 
-	cliConf := ParseInitFlag()
+	cliConf := ParseInitFlags()
 
 	if cliConf.HasDefaultHost() {
 		host, hostErr := cliConf.GetDefaultHost()
