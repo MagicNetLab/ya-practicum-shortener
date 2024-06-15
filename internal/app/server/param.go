@@ -16,14 +16,14 @@ type configurator interface {
 	GetShortHost() string
 }
 
-type ServerParams struct {
+type Params struct {
 	defaultHost string
 	defaultPort string
 	shortHost   string
 	shortPort   string
 }
 
-func (sp *ServerParams) Init() error {
+func (sp *Params) Init() error {
 	sp.defaultHost = DefaultHostName
 	sp.defaultPort = DefaultHostPort
 	sp.shortHost = ShortHostName
@@ -32,26 +32,26 @@ func (sp *ServerParams) Init() error {
 	return nil
 }
 
-func (sp *ServerParams) SetDefaultHost(host string, port string) error {
+func (sp *Params) SetDefaultHost(host string, port string) error {
 	sp.defaultHost = host
 	sp.defaultPort = port
 
 	return nil
 }
 
-func (sp *ServerParams) SetShortHost(host string, port string) error {
+func (sp *Params) SetShortHost(host string, port string) error {
 	sp.shortHost = host
 	sp.shortPort = port
 
 	return nil
 }
 
-func (sp *ServerParams) GetDefaultHost() string {
+func (sp *Params) GetDefaultHost() string {
 	p := []string{sp.defaultHost, sp.defaultPort}
 	return strings.Join(p, ":")
 }
 
-func (sp *ServerParams) GetShortHost() string {
+func (sp *Params) GetShortHost() string {
 	p := []string{sp.shortHost, sp.shortPort}
 	return strings.Join(p, ":")
 }

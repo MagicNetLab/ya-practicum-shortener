@@ -1,5 +1,7 @@
 package store
 
+import "github.com/MagicNetLab/ya-practicum-shortener/internal/app/store/local"
+
 type LinkStore interface {
 	PutLink(link string, short string) error
 
@@ -9,7 +11,7 @@ type LinkStore interface {
 }
 
 var storageList = map[string]LinkStore{
-	"local": &localStore,
+	"local": &local.Store,
 }
 
 func GetStore() LinkStore {

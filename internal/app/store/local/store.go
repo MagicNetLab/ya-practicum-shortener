@@ -1,4 +1,4 @@
-package store
+package local
 
 import (
 	"errors"
@@ -6,11 +6,11 @@ import (
 	"log"
 )
 
-type local struct {
+type store struct {
 	store map[string]string
 }
 
-func (s *local) PutLink(link string, short string) error {
+func (s *store) PutLink(link string, short string) error {
 	if link == "" || short == "" {
 		log.Printf("Faled store link: empty link(%s) or short(%s)", link, short)
 		return errors.New("incorrect params to store link")
@@ -21,7 +21,7 @@ func (s *local) PutLink(link string, short string) error {
 	return nil
 }
 
-func (s *local) GetLink(short string) (string, error) {
+func (s *store) GetLink(short string) (string, error) {
 	link, ok := s.store[short]
 	if ok {
 		return link, nil
@@ -30,10 +30,10 @@ func (s *local) GetLink(short string) (string, error) {
 	return "", fmt.Errorf("short %s not found", short)
 }
 
-func (s *local) HasShort(short string) bool {
+func (s *store) HasShort(short string) bool {
 	_, ok := s.store[short]
 
 	return ok
 }
 
-var localStore = local{store: make(map[string]string, 2)}
+var Store = store{store: make(map[string]string, 2)}
