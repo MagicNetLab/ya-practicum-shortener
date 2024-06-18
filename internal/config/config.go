@@ -53,16 +53,14 @@ func (sp *params) GetShortHost() string {
 
 var servParams params
 
-// Testing TODO доступ только локально и при тестах
-func Testing() {
-	_ = servParams.SetDefaultHost("localhost", "8080")
-	_ = servParams.SetShortHost("localhost", "8080")
-}
-
 func GetParams() ParameterConfig {
 	if servParams.IsValid() {
 		return &servParams
 	}
+
+	// todo default values
+	_ = servParams.SetDefaultHost("localhost", "8080")
+	_ = servParams.SetShortHost("localhost", "8080")
 
 	envConf, err := env.Parse()
 	if err == nil {

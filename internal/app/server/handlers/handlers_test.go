@@ -1,7 +1,6 @@
 package handlers
 
 import (
-	"github.com/MagicNetLab/ya-practicum-shortener/internal/config"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"io"
@@ -63,8 +62,6 @@ func Test_encodeLinkHeader(t *testing.T) {
 		// todo test incorrect link
 	}
 
-	config.Testing()
-
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			request := httptest.NewRequest(tt.method, tt.request, strings.NewReader(tt.body))
@@ -116,8 +113,6 @@ func Test_decodeLinkHeader(t *testing.T) {
 			request: "/jsdhkahs",
 		},
 	}
-
-	config.Testing()
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
