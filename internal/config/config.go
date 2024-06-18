@@ -2,15 +2,9 @@ package config
 
 import (
 	"fmt"
+	"github.com/MagicNetLab/ya-practicum-shortener/internal/config/env"
+	"github.com/MagicNetLab/ya-practicum-shortener/internal/config/flags"
 	"strings"
-)
-
-// todo значения из конфига или env
-const (
-	defaultHostName = "localhost"
-	defaultHostPort = "8080"
-	shortHostName   = "localhost"
-	shortHostPort   = "8080"
 )
 
 type ParameterConfig interface {
@@ -18,6 +12,7 @@ type ParameterConfig interface {
 	SetShortHost(host string, port string) error
 	GetDefaultHost() string
 	GetShortHost() string
+	IsValid() bool
 }
 
 // TODO разделить структуру на 2 для defaultHost и shortHost
@@ -28,14 +23,7 @@ type params struct {
 	shortPort   string
 }
 
-func (sp *params) initParams() {
-	sp.defaultHost = defaultHostName
-	sp.defaultPort = defaultHostPort
-	sp.shortHost = shortHostName
-	sp.shortPort = shortHostPort
-}
-
-func (sp *params) IsParamsAlreadySet() bool {
+func (sp *params) IsValid() bool {
 	return sp.defaultHost != "" && sp.defaultPort != "" && sp.shortHost != "" && sp.shortPort != ""
 }
 
@@ -65,14 +53,18 @@ func (sp *params) GetShortHost() string {
 
 var servParams params
 
+// Testing TODO доступ только локально и при тестах
+func Testing() {
+	_ = servParams.SetDefaultHost("localhost", "8080")
+	_ = servParams.SetShortHost("localhost", "8080")
+}
+
 func GetParams() ParameterConfig {
-	if servParams.IsParamsAlreadySet() {
+	if servParams.IsValid() {
 		return &servParams
 	}
 
-	servParams.initParams()
-
-	envConf, err := ReadEnv()
+	envConf, err := env.Parse()
 	if err == nil {
 		if envConf.HasBaseHost() {
 			host, hostErr := envConf.GetBaseHost()
@@ -97,9 +89,10 @@ func GetParams() ParameterConfig {
 				}
 			}
 		}
+
 	}
 
-	cliConf := ParseInitFlags()
+	cliConf := flags.Parse()
 
 	if cliConf.HasDefaultHost() {
 		host, hostErr := cliConf.GetDefaultHost()

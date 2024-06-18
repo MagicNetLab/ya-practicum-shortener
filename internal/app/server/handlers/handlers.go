@@ -2,11 +2,12 @@ package handlers
 
 import (
 	"fmt"
-	"github.com/MagicNetLab/ya-practicum-shortener/internal/app/server/config"
 	"github.com/MagicNetLab/ya-practicum-shortener/internal/app/shortgen"
-	storage "github.com/MagicNetLab/ya-practicum-shortener/internal/app/store"
+	"github.com/MagicNetLab/ya-practicum-shortener/internal/app/storage"
+	"github.com/MagicNetLab/ya-practicum-shortener/internal/config"
 	"github.com/go-chi/chi/v5"
 	"io"
+	"log"
 	"net/http"
 )
 
@@ -69,14 +70,20 @@ func encodeLinkHeader(response http.ResponseWriter, request *http.Request) {
 	conf := config.GetParams()
 	response.Header().Set("content-type", "text/plain")
 	response.WriteHeader(http.StatusCreated)
-	response.Write([]byte(fmt.Sprintf("http://%s/%s", conf.GetShortHost(), short)))
+	_, err = response.Write([]byte(fmt.Sprintf("http://%s/%s", conf.GetShortHost(), short)))
+	if err != nil {
+		log.Fatalf("Fail send response: %s", err)
+	}
 }
 
 func decodeLinkHeader(resp http.ResponseWriter, req *http.Request) {
 	if req.Method != http.MethodGet {
 		resp.Header().Set("content-type", "text/plain")
 		resp.WriteHeader(http.StatusForbidden)
-		resp.Write([]byte("Method not allowed"))
+		_, err := resp.Write([]byte("Method not allowed"))
+		if err != nil {
+			log.Fatalf("Fail send response: %s", err)
+		}
 		return
 	}
 

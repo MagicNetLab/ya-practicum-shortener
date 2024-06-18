@@ -1,14 +1,18 @@
 package main
 
 import (
-	serv "github.com/MagicNetLab/ya-practicum-shortener/internal/app/server"
-	"github.com/MagicNetLab/ya-practicum-shortener/internal/app/server/config"
+	"github.com/MagicNetLab/ya-practicum-shortener/internal/app/server"
+	"github.com/MagicNetLab/ya-practicum-shortener/internal/config"
 	"log"
 )
 
 func main() {
 	conf := config.GetParams()
-	if err := serv.RunServer(conf); err != nil {
+	if !conf.IsValid() {
+		panic("invalid server config")
+	}
+
+	if err := server.RunServer(conf); err != nil {
 		log.Fatalf("Failed starting server :%s", err)
 	}
 }

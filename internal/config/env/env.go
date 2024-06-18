@@ -1,4 +1,4 @@
-package config
+package env
 
 import (
 	"errors"
@@ -9,22 +9,22 @@ import (
 	"strings"
 )
 
-type EnvConfig struct {
+type Config struct {
 	baseHost  []string `env:"SERVER_ADDRESS" envSeparator:":"`
 	shortHost []string `env:"BASE_URL" envSeparator:":"`
 }
 
-var envConf = EnvConfig{}
+var envConf = Config{}
 
-func (e *EnvConfig) HasBaseHost() bool {
+func (e *Config) HasBaseHost() bool {
 	return len(e.baseHost) == 2
 }
 
-func (e *EnvConfig) HasShortHost() bool {
+func (e *Config) HasShortHost() bool {
 	return len(e.shortHost) == 2
 }
 
-func (e *EnvConfig) GetBaseHost() (string, error) {
+func (e *Config) GetBaseHost() (string, error) {
 	if !e.HasBaseHost() {
 		return "", errors.New("base host not init in env")
 	}
@@ -36,19 +36,19 @@ func (e *EnvConfig) GetBaseHost() (string, error) {
 	return e.baseHost[0], nil
 }
 
-func (e *EnvConfig) GetBasePort() (string, error) {
-	if e.HasBaseHost() {
+func (e *Config) GetBasePort() (string, error) {
+	if !e.HasBaseHost() {
 		return "", errors.New("base host not init in env")
 	}
 
-	if e.baseHost[0] == "" {
+	if e.baseHost[1] == "" {
 		return "", errors.New("base port is empty")
 	}
 
 	return e.baseHost[1], nil
 }
 
-func (e *EnvConfig) GetShortHostString() (string, error) {
+func (e *Config) GetShortHostString() (string, error) {
 	if !e.HasShortHost() {
 		return "", errors.New("base host not init in env")
 	}
@@ -56,7 +56,7 @@ func (e *EnvConfig) GetShortHostString() (string, error) {
 	return strings.Join(e.shortHost, ":"), nil
 }
 
-func (e *EnvConfig) GetShortHost() (string, error) {
+func (e *Config) GetShortHost() (string, error) {
 	if !e.HasShortHost() {
 		return "", errors.New("base host not init in env")
 	}
@@ -64,7 +64,7 @@ func (e *EnvConfig) GetShortHost() (string, error) {
 	return e.shortHost[0], nil
 }
 
-func (e *EnvConfig) GetShortPort() (string, error) {
+func (e *Config) GetShortPort() (string, error) {
 	if !e.HasShortHost() {
 		return "", errors.New("base host not init in env")
 	}
@@ -72,7 +72,7 @@ func (e *EnvConfig) GetShortPort() (string, error) {
 	return e.shortHost[1], nil
 }
 
-func ReadEnv() (EnvConfig, error) {
+func Parse() (Config, error) {
 	if err := godotenv.Load(".env"); err != nil {
 		err := env.Parse(&envConf)
 		if err != nil {

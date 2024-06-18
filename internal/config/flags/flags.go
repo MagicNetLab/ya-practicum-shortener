@@ -1,4 +1,4 @@
-package config
+package flags
 
 import (
 	"errors"
@@ -72,7 +72,7 @@ func (cc *cliConf) GetShortPort() (string, error) {
 
 var conf = cliConf{}
 
-func ParseInitFlags() CliConfigurator {
+func Parse() CliConfigurator {
 	flag.StringVar(&defaultHost, defaultHostKey, "", "Base address")
 	flag.StringVar(&shortHost, shortHostKey, "", "short links host")
 	flag.Parse()

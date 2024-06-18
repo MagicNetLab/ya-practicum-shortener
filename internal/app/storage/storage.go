@@ -1,6 +1,6 @@
-package store
+package storage
 
-import "github.com/MagicNetLab/ya-practicum-shortener/internal/app/store/local"
+import "github.com/MagicNetLab/ya-practicum-shortener/internal/app/storage/local"
 
 type LinkStore interface {
 	PutLink(link string, short string) error
