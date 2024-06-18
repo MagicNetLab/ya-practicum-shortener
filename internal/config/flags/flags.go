@@ -11,6 +11,7 @@ const (
 	shortHostKey   = "b"
 )
 
+// todo (Лучше объявить defaultHost и shortHost как часть структуры cliConf, а не глобальные переменные.)
 var defaultHost = ""
 var shortHost = ""
 

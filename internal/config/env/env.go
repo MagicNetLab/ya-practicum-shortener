@@ -74,6 +74,8 @@ func (e *Config) GetShortPort() (string, error) {
 
 func Parse() (Config, error) {
 	if err := godotenv.Load(".env"); err != nil {
+		log.Printf(".env file not found: %s", err)
+
 		err := env.Parse(&envConf)
 		if err != nil {
 			log.Printf("Failed to parse .env file: %s", err)
