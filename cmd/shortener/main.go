@@ -9,7 +9,8 @@ import (
 func main() {
 	conf := config.GetParams()
 	if !conf.IsValid() {
-		panic("invalid server config")
+		config.Testing()
+		conf = config.GetParams()
 	}
 
 	if err := server.RunServer(conf); err != nil {
