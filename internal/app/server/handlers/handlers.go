@@ -55,7 +55,10 @@ func encodeLinkHeader(response http.ResponseWriter, request *http.Request) {
 	if string(link) == "" {
 		response.Header().Set("content-type", "text/plain")
 		response.WriteHeader(http.StatusBadRequest)
-		response.Write([]byte("Missing link"))
+		_, err := response.Write([]byte("Missing link"))
+		if err != nil {
+			log.Fatalf("Failed to write response %s", err)
+		}
 		return
 	}
 
