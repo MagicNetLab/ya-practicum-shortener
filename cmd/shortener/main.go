@@ -13,7 +13,5 @@ func main() {
 		return
 	}
 
-	if err := server.RunServer(conf); err != nil {
-		log.Fatalf("Failed starting server :%s", err)
-	}
+	server.Run(conf)
 }

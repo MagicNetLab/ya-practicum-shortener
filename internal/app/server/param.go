@@ -1,12 +1,8 @@
 package server
 
-import "strings"
-
-const (
-	DefaultHostName = "localhost"
-	DefaultHostPort = "8080"
-	ShortHostName   = "localhost"
-	ShortHostPort   = "8080"
+import (
+	"github.com/go-chi/chi/v5"
+	"net/http"
 )
 
 type configurator interface {
@@ -14,44 +10,32 @@ type configurator interface {
 	SetShortHost(host string, port string) error
 	GetDefaultHost() string
 	GetShortHost() string
+	IsValid() bool
 }
 
-type Params struct {
-	defaultHost string
-	defaultPort string
-	shortHost   string
-	shortPort   string
+type route struct {
+	path    string
+	method  string
+	handler http.HandlerFunc
 }
 
-func (sp *Params) Init() error {
-	sp.defaultHost = DefaultHostName
-	sp.defaultPort = DefaultHostPort
-	sp.shortHost = ShortHostName
-	sp.shortPort = ShortHostPort
+type listeners map[string]chi.Router
 
-	return nil
-}
+func (l listeners) Append(host string, route route) {
+	var r chi.Router
+	if _, ok := l[host]; !ok {
+		r = chi.NewRouter()
+	} else {
+		r = l[host]
+	}
 
-func (sp *Params) SetDefaultHost(host string, port string) error {
-	sp.defaultHost = host
-	sp.defaultPort = port
+	switch route.method {
+	case http.MethodPost:
+		r.Post(route.path, route.handler)
+		break
+	default:
+		r.Get(route.path, route.handler)
+	}
 
-	return nil
-}
-
-func (sp *Params) SetShortHost(host string, port string) error {
-	sp.shortHost = host
-	sp.shortPort = port
-
-	return nil
-}
-
-func (sp *Params) GetDefaultHost() string {
-	p := []string{sp.defaultHost, sp.defaultPort}
-	return strings.Join(p, ":")
-}
-
-func (sp *Params) GetShortHost() string {
-	p := []string{sp.shortHost, sp.shortPort}
-	return strings.Join(p, ":")
+	l[host] = r
 }
