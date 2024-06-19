@@ -5,9 +5,9 @@ import (
 	"github.com/MagicNetLab/ya-practicum-shortener/internal/app/shortgen"
 	"github.com/MagicNetLab/ya-practicum-shortener/internal/app/storage"
 	"github.com/MagicNetLab/ya-practicum-shortener/internal/config"
+	"github.com/MagicNetLab/ya-practicum-shortener/internal/service/logger"
 	"github.com/go-chi/chi/v5"
 	"io"
-	"log"
 	"net/http"
 )
 
@@ -25,82 +25,93 @@ func GetHandlers() MapHandlers {
 	handlers["default"] = RouteHandler{
 		Method:  http.MethodPost,
 		Path:    "/",
-		Handler: encodeLinkHeader,
+		Handler: logger.RequestLogger(encodeHandler()),
 	}
 
 	handlers["short"] = RouteHandler{
 		Method:  http.MethodGet,
 		Path:    "/{short}",
-		Handler: decodeLinkHeader,
+		Handler: logger.RequestLogger(decodeHandler()),
 	}
 
 	return handlers
 }
 
-func encodeLinkHeader(response http.ResponseWriter, request *http.Request) {
-	if request.Method != http.MethodPost {
-		response.Header().Set("content-type", "text/plain")
-		response.WriteHeader(http.StatusForbidden)
-		response.Write([]byte("Method not allowed"))
-		return
+func encodeHandler() http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		if r.Method != http.MethodPost {
+			w.Header().Set("content-type", "text/plain")
+			w.WriteHeader(http.StatusForbidden)
+			w.Write([]byte("Method not allowed"))
 
-	}
-
-	link, err := io.ReadAll(request.Body)
-	if err != nil {
-		http.Error(response, "Internal Server Error", http.StatusInternalServerError)
-		return
-	}
-
-	if string(link) == "" {
-		response.Header().Set("content-type", "text/plain")
-		response.WriteHeader(http.StatusBadRequest)
-		_, err := response.Write([]byte("Missing link"))
-		if err != nil {
-			log.Fatalf("Failed to write response %s", err)
+			return
 		}
-		return
-	}
 
-	short := shortgen.GetShortLink(7)
-	store := storage.GetStore()
-	err = store.PutLink(string(link), short)
-	if err != nil {
-		http.Error(response, "Internal Server Error", http.StatusInternalServerError)
-		return
-	}
+		link, err := io.ReadAll(r.Body)
+		if err != nil {
+			http.Error(w, "Internal Server Error", http.StatusInternalServerError)
 
-	conf := config.GetParams()
-	response.Header().Set("content-type", "text/plain")
-	response.WriteHeader(http.StatusCreated)
-	_, err = response.Write([]byte(fmt.Sprintf("http://%s/%s", conf.GetShortHost(), short)))
-	if err != nil {
-		log.Fatalf("Fail send response: %s", err)
+			return
+		}
+
+		if string(link) == "" {
+			w.Header().Set("content-type", "text/plain")
+			w.WriteHeader(http.StatusBadRequest)
+			_, err := w.Write([]byte("Missing link"))
+			if err != nil {
+				logger.Log.Errorf("Failed to write response %v", err)
+			}
+
+			return
+		}
+
+		short := shortgen.GetShortLink(7)
+		store := storage.GetStore()
+		err = store.PutLink(string(link), short)
+		if err != nil {
+			http.Error(w, "Internal Server Error", http.StatusInternalServerError)
+
+			return
+		}
+
+		conf := config.GetParams()
+		w.Header().Set("content-type", "text/plain")
+		w.WriteHeader(http.StatusCreated)
+		_, err = w.Write([]byte(fmt.Sprintf("http://%s/%s", conf.GetShortHost(), short)))
+		if err != nil {
+			logger.Log.Errorf("Failed to write response %v", err)
+		}
 	}
 }
 
-func decodeLinkHeader(resp http.ResponseWriter, req *http.Request) {
-	if req.Method != http.MethodGet {
-		resp.Header().Set("content-type", "text/plain")
-		resp.WriteHeader(http.StatusForbidden)
-		_, err := resp.Write([]byte("Method not allowed"))
-		if err != nil {
-			log.Fatalf("Fail send response: %s", err)
-		}
-		return
-	}
+func decodeHandler() http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		if r.Method != http.MethodGet {
+			w.Header().Set("content-type", "text/plain")
+			w.WriteHeader(http.StatusForbidden)
+			_, err := w.Write([]byte("Method not allowed"))
+			if err != nil {
+				logger.Log.Errorf("Failed to write response %v", err)
+			}
 
-	short := chi.URLParam(req, "short")
-	store := storage.GetStore()
-
-	if store.HasShort(short) {
-		link, err := store.GetLink(short)
-		if err != nil {
-			http.NotFound(resp, req)
+			return
 		}
 
-		http.Redirect(resp, req, link, http.StatusTemporaryRedirect)
-	}
+		short := chi.URLParam(r, "short")
+		store := storage.GetStore()
 
-	http.NotFound(resp, req)
+		if store.HasShort(short) {
+			link, err := store.GetLink(short)
+			if err != nil {
+				http.NotFound(w, r)
+				return
+			}
+
+			http.Redirect(w, r, link, http.StatusTemporaryRedirect)
+
+			return
+		}
+
+		http.NotFound(w, r)
+	}
 }
