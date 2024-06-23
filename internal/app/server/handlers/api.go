@@ -8,15 +8,15 @@ import (
 	"net/http"
 )
 
-type ApiRequest struct {
-	Url string `json:"url"`
+type APIRequest struct {
+	URL string `json:"url"`
 }
 
-type ApiResponse struct {
+type APIResponse struct {
 	Result string `json:"result"`
 }
 
-var shortRequest ApiRequest
+var shortRequest APIRequest
 
 func apiEncodeHandler() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
@@ -34,7 +34,7 @@ func apiEncodeHandler() http.HandlerFunc {
 
 		short := shortgen.GetShortLink(7)
 		store := storage.GetStore()
-		err := store.PutLink(shortRequest.Url, short)
+		err := store.PutLink(shortRequest.URL, short)
 		if err != nil {
 			http.Error(w, "Internal Server Error", http.StatusInternalServerError)
 			return
@@ -42,7 +42,7 @@ func apiEncodeHandler() http.HandlerFunc {
 
 		conf := config.GetParams()
 		redirectLink := "http://" + conf.GetShortHost() + "/" + short
-		apiResult := ApiResponse{
+		apiResult := APIResponse{
 			Result: redirectLink,
 		}
 
