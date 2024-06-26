@@ -6,16 +6,6 @@ import (
 	"net/http"
 )
 
-type middlewares []func(h http.HandlerFunc) http.HandlerFunc
-
-var middlewareList = middlewares{
-	compression.GzipMiddleware,
-	logger.Middleware,
-}
-
 func requestMiddlewares(h http.HandlerFunc) http.HandlerFunc {
-	for _, m := range middlewareList {
-		h = m(h)
-	}
-	return h
+	return logger.Middleware(compression.GzipMiddleware(h))
 }
