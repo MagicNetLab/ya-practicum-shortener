@@ -1,7 +1,6 @@
 package handlers
 
 import (
-	"github.com/MagicNetLab/ya-practicum-shortener/internal/service/logger"
 	"net/http"
 )
 
@@ -19,17 +18,17 @@ func GetHandlers() MapHandlers {
 	handlers["default"] = RouteHandler{
 		Method:  http.MethodPost,
 		Path:    "/",
-		Handler: logger.RequestLogger(encodeHandler()),
+		Handler: requestMiddlewares(encodeHandler()),
 	}
 	handlers["apiDefault"] = RouteHandler{
 		Method:  http.MethodPost,
 		Path:    "/api/shorten",
-		Handler: logger.RequestLogger(apiEncodeHandler()),
+		Handler: requestMiddlewares(apiEncodeHandler()),
 	}
 	handlers["short"] = RouteHandler{
 		Method:  http.MethodGet,
 		Path:    "/{short}",
-		Handler: logger.RequestLogger(decodeHandler()),
+		Handler: requestMiddlewares(decodeHandler()),
 	}
 
 	return handlers

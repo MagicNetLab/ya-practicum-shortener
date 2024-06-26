@@ -18,13 +18,13 @@ func Initialize() error {
 	return nil
 }
 
-func RequestLogger(h http.HandlerFunc) http.HandlerFunc {
+func Middleware(h http.HandlerFunc) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		start := time.Now()
 
-		responseData := &responseData{
-			status: 0,
-			size:   0,
+		responseData := &ResponseData{
+			Status: 0,
+			Size:   0,
 		}
 		lw := loggingResponseWriter{
 			ResponseWriter: w,
@@ -38,9 +38,9 @@ func RequestLogger(h http.HandlerFunc) http.HandlerFunc {
 		Log.Infoln(
 			"uri", r.RequestURI,
 			"method", r.Method,
-			"status", responseData.status,
+			"status", responseData.Status,
 			"duration", duration,
-			"size", responseData.size,
+			"size", responseData.Size,
 		)
 	}
 }
