@@ -7,5 +7,5 @@ import (
 )
 
 func requestMiddlewares(h http.HandlerFunc) http.HandlerFunc {
-	return logger.Middleware(compression.GzipMiddleware(h))
+	return logger.Middleware(compression.Middleware(h))
 }
