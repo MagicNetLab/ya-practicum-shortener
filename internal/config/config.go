@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"github.com/MagicNetLab/ya-practicum-shortener/internal/config/env"
 	"github.com/MagicNetLab/ya-practicum-shortener/internal/config/flags"
+	"github.com/MagicNetLab/ya-practicum-shortener/internal/service/logger"
 	"strings"
 )
 
@@ -67,6 +68,7 @@ var servParams params
 
 func GetParams() ParameterConfig {
 	if servParams.IsValid() {
+		logger.Log.Infof("Config: defaultHost %s, shortHost %s, filePath %s", servParams.defaultHost, servParams.shortHost, servParams.fileStoragePath)
 		return &servParams
 	}
 
@@ -147,6 +149,8 @@ func GetParams() ParameterConfig {
 			}
 		}
 	}
+
+	logger.Log.Infof("Config: defaultHost %s, shortHost %s, filePath %s", servParams.defaultHost, servParams.shortHost, servParams.fileStoragePath)
 
 	return &servParams
 }
