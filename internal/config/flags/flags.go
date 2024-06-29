@@ -4,13 +4,14 @@ import (
 	"errors"
 	"flag"
 	"github.com/MagicNetLab/ya-practicum-shortener/internal/service/logger"
+	"os"
 	"strings"
 )
 
 const (
 	defaultHostKey  = "a"
 	shortHostKey    = "b"
-	fileStoragePath = "file-storage-path"
+	fileStoragePath = "f"
 )
 
 // todo (Лучше объявить defaultHost и shortHost как часть структуры cliConf, а не глобальные переменные.)
@@ -110,7 +111,7 @@ func Parse() CliConfigurator {
 	}
 
 	conf.fileStoragePath = fileStorage
-	logger.Log.Infof("cli flangs: defaulthost %s, shorthost: %s, filePath: %s", defaultHost, shortHost, fileStorage)
+	logger.Log.Infof("os Args: %s", strings.Join(os.Args, " // "))
 
 	return &conf
 }
