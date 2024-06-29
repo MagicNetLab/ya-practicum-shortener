@@ -3,6 +3,7 @@ package flags
 import (
 	"errors"
 	"flag"
+	"github.com/MagicNetLab/ya-practicum-shortener/internal/service/logger"
 	"strings"
 )
 
@@ -109,6 +110,7 @@ func Parse() CliConfigurator {
 	}
 
 	conf.fileStoragePath = fileStorage
+	logger.Log.Infof("cli flangs: defaulthost %s, shorthost: %s, filePath: %s", defaultHost, shortHost, fileStorage)
 
 	return &conf
 }
