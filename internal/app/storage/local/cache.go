@@ -55,6 +55,10 @@ func (cs *cacheStore) Save(short string, link string) error {
 			Link:  link,
 		}
 		rowString, err := json.Marshal(rowData)
+		if err != nil {
+			logger.Log.Errorf("Failed to serialize cache data: %s", err)
+			return err
+		}
 
 		_, err = writer.WriteString(string(rowString) + "\n")
 		if err != nil {
