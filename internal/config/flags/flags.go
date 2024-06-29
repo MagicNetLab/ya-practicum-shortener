@@ -10,7 +10,7 @@ import (
 const (
 	defaultHostKey  = "a"
 	shortHostKey    = "b"
-	fileStoragePath = "f"
+	fileStoragePath = "file-storage-path"
 )
 
 // todo (Лучше объявить defaultHost и shortHost как часть структуры cliConf, а не глобальные переменные.)
