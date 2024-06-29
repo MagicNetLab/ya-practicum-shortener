@@ -75,7 +75,7 @@ func GetParams() ParameterConfig {
 	// todo default values
 	_ = servParams.SetDefaultHost("localhost", "8080")
 	_ = servParams.SetShortHost("localhost", "8080")
-	_ = servParams.SetFileStoragePath("/tmp/short-url-db.json")
+	_ = servParams.SetFileStoragePath("/tmp/eKs2M")
 
 	envConf, err := env.Parse()
 	if err == nil {
