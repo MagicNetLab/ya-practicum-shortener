@@ -19,7 +19,7 @@ type storeFileData struct {
 
 func (cs *cacheStore) Load() ([]storeFileData, error) {
 	data := make([]storeFileData, 0)
-	file, err := os.OpenFile(cs.path, os.O_RDONLY|os.O_WRONLY|os.O_CREATE, 0755)
+	file, err := os.OpenFile(cs.path, os.O_RDONLY|os.O_WRONLY|os.O_CREATE, 0666)
 	if err != nil {
 		return data, err
 	}
@@ -40,9 +40,8 @@ func (cs *cacheStore) Load() ([]storeFileData, error) {
 }
 
 func (cs *cacheStore) Save(short string, link string) error {
-	logger.Log.Infoln("start save cache")
 	if storeFile.isInitialized {
-		file, err := os.OpenFile(storeFile.path, os.O_APPEND|os.O_WRONLY|os.O_CREATE, 0755)
+		file, err := os.OpenFile(storeFile.path, os.O_APPEND|os.O_WRONLY|os.O_CREATE, 0666)
 		if err != nil {
 			logger.Log.Errorf("Failed to open local file storage: %s", err)
 			return err
