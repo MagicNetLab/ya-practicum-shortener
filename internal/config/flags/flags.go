@@ -7,13 +7,15 @@ import (
 )
 
 const (
-	defaultHostKey = "a"
-	shortHostKey   = "b"
+	defaultHostKey  = "a"
+	shortHostKey    = "b"
+	fileStoragePath = "f"
 )
 
 // todo (Лучше объявить defaultHost и shortHost как часть структуры cliConf, а не глобальные переменные.)
 var defaultHost = ""
 var shortHost = ""
+var fileStorage = ""
 
 type CliConfigurator interface {
 	HasDefaultHost() bool
@@ -22,13 +24,16 @@ type CliConfigurator interface {
 	HasShortHost() bool
 	GetShortHost() (string, error)
 	GetShortPort() (string, error)
+	HasFileStoragePath() bool
+	GetFileStoragePath() (string, error)
 }
 
 type cliConf struct {
-	defaultHost string
-	defaultPort string
-	shortHost   string
-	shortPort   string
+	defaultHost     string
+	defaultPort     string
+	shortHost       string
+	shortPort       string
+	fileStoragePath string
 }
 
 func (cc *cliConf) HasDefaultHost() bool {
@@ -71,11 +76,24 @@ func (cc *cliConf) GetShortPort() (string, error) {
 	return cc.shortPort, nil
 }
 
+func (cc *cliConf) HasFileStoragePath() bool {
+	return cc.fileStoragePath != ""
+}
+
+func (cc *cliConf) GetFileStoragePath() (string, error) {
+	if !cc.HasFileStoragePath() {
+		return "", errors.New("file storage path not set")
+	}
+
+	return cc.fileStoragePath, nil
+}
+
 var conf = cliConf{}
 
 func Parse() CliConfigurator {
 	flag.StringVar(&defaultHost, defaultHostKey, "", "Base address")
 	flag.StringVar(&shortHost, shortHostKey, "", "short links host")
+	flag.StringVar(&fileStorage, fileStoragePath, "", "file storage path")
 	flag.Parse()
 
 	dh := strings.Split(defaultHost, ":")
@@ -89,6 +107,8 @@ func Parse() CliConfigurator {
 		conf.shortHost = sh[0]
 		conf.shortPort = sh[1]
 	}
+
+	conf.fileStoragePath = fileStorage
 
 	return &conf
 }

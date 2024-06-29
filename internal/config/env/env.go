@@ -10,8 +10,9 @@ import (
 )
 
 type Config struct {
-	baseHost  []string `env:"SERVER_ADDRESS" envSeparator:":"`
-	shortHost []string `env:"BASE_URL" envSeparator:":"`
+	baseHost    []string `env:"SERVER_ADDRESS" envSeparator:":"`
+	shortHost   []string `env:"BASE_URL" envSeparator:":"`
+	fileStorage string   `env:"FILE_STORAGE_PATH"`
 }
 
 var envConf = Config{}
@@ -72,6 +73,18 @@ func (e *Config) GetShortPort() (string, error) {
 	return e.shortHost[1], nil
 }
 
+func (e Config) HasFileStoragePath() bool {
+	return e.fileStorage != ""
+}
+
+func (e Config) GetFileStoragePath() (string, error) {
+	if !e.HasFileStoragePath() {
+		return "", errors.New("file storage path not init")
+	}
+
+	return e.fileStorage, nil
+}
+
 func Parse() (Config, error) {
 	if err := godotenv.Load(".env"); err != nil {
 		log.Printf(".env file not found: %s", err)
@@ -93,6 +106,11 @@ func Parse() (Config, error) {
 	shortHost := os.Getenv("BASE_URL")
 	if shortHost != "" && strings.Contains(shortHost, ":") {
 		envConf.shortHost = strings.Split(shortHost, ":")
+	}
+
+	fileStorage := os.Getenv("FILE_STORAGE_PATH")
+	if fileStorage != "" {
+		envConf.fileStorage = fileStorage
 	}
 
 	return envConf, nil
