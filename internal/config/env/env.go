@@ -2,6 +2,7 @@ package env
 
 import (
 	"errors"
+	"github.com/MagicNetLab/ya-practicum-shortener/internal/service/logger"
 	"github.com/caarlos0/env/v6"
 	"github.com/joho/godotenv"
 	"log"
@@ -109,6 +110,7 @@ func Parse() (Config, error) {
 	}
 
 	fileStorage := os.Getenv("FILE_STORAGE_PATH")
+	logger.Log.Infof("env storage param: %s", os.Getenv("FILE_STORAGE_PATH"))
 	if fileStorage != "" {
 		envConf.fileStorage = fileStorage
 	}
