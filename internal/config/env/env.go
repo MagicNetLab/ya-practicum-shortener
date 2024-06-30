@@ -87,9 +87,10 @@ func (e Config) GetFileStoragePath() (string, error) {
 }
 
 func Parse() (Config, error) {
-	if err := godotenv.Load(".env"); err != nil {
+	err := godotenv.Load(".env")
+	if err != nil {
 		log.Printf(".env file not found: %s", err)
-
+	} else {
 		err := env.Parse(&envConf)
 		if err != nil {
 			log.Printf("Failed to parse .env file: %s", err)
