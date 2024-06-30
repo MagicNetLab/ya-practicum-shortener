@@ -8,6 +8,8 @@ type LinkStore interface {
 	GetLink(short string) (string, error)
 
 	HasShort(short string) bool
+
+	Init()
 }
 
 var storageList = map[string]LinkStore{
@@ -15,6 +17,7 @@ var storageList = map[string]LinkStore{
 }
 
 func GetStore() LinkStore {
-	// TODO тип хранилища получать из конфига из конфига
-	return storageList["local"]
+	store := storageList["local"]
+	store.Init()
+	return store
 }
