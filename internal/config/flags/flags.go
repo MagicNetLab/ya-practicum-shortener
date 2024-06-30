@@ -93,6 +93,7 @@ func (cc *cliConf) GetFileStoragePath() (string, error) {
 var conf = cliConf{}
 
 func Parse() CliConfigurator {
+	logger.Log.Infof("os Args: %s", strings.Join(os.Args, ""))
 	flag.StringVar(&defaultHost, defaultHostKey, "", "Base address")
 	flag.StringVar(&shortHost, shortHostKey, "", "short links host")
 	flag.StringVar(&fileStorage, fileStoragePath, "", "file storage path")
@@ -111,7 +112,6 @@ func Parse() CliConfigurator {
 	}
 
 	conf.fileStoragePath = fileStorage
-	logger.Log.Infof("os Args: %s", strings.Join(os.Args, " // "))
 
 	return &conf
 }

@@ -1,7 +1,6 @@
 package config
 
 import (
-	"fmt"
 	"github.com/MagicNetLab/ya-practicum-shortener/internal/config/env"
 	"github.com/MagicNetLab/ya-practicum-shortener/internal/config/flags"
 	"github.com/MagicNetLab/ya-practicum-shortener/internal/service/logger"
@@ -68,14 +67,13 @@ var servParams params
 
 func GetParams() ParameterConfig {
 	if servParams.IsValid() {
-		logger.Log.Infof("Config: defaultHost %s, shortHost %s, filePath %s", servParams.defaultHost, servParams.shortHost, servParams.fileStoragePath)
 		return &servParams
 	}
 
 	// todo default values
 	_ = servParams.SetDefaultHost("localhost", "8080")
 	_ = servParams.SetShortHost("localhost", "8080")
-	_ = servParams.SetFileStoragePath("/tmp/eKs2M")
+	_ = servParams.SetFileStoragePath("/tmp/short-url-db.json")
 
 	envConf, err := env.Parse()
 	if err == nil {
@@ -86,7 +84,7 @@ func GetParams() ParameterConfig {
 			if hostErr == nil && portErr == nil {
 				err = servParams.SetDefaultHost(host, port)
 				if err != nil {
-					fmt.Println("Fail set default host from env")
+					logger.Log.Errorf("Fail set default host from env: %s", err)
 				}
 			}
 		}
@@ -98,7 +96,7 @@ func GetParams() ParameterConfig {
 			if hostErr == nil && portErr == nil {
 				err = servParams.SetShortHost(host, port)
 				if err != nil {
-					fmt.Println("Fail set short host from env")
+					logger.Log.Errorf("Fail set short host from env: %s", err)
 				}
 			}
 		}
@@ -108,7 +106,7 @@ func GetParams() ParameterConfig {
 			if storageErr == nil {
 				err = servParams.SetFileStoragePath(storagePath)
 				if err != nil {
-					fmt.Println("Fail set file storage path from env")
+					logger.Log.Errorf("Fail set file storage path from env: %s", err)
 				}
 			}
 		}
@@ -123,9 +121,8 @@ func GetParams() ParameterConfig {
 		if hostErr == nil && portErr == nil {
 			err = servParams.SetDefaultHost(host, port)
 			if err != nil {
-				fmt.Println("Fail set default host from cli flags")
+				logger.Log.Errorf("Fail set default host from cli flags: %s", err)
 			}
-
 		}
 	}
 
@@ -135,7 +132,7 @@ func GetParams() ParameterConfig {
 		if hostErr == nil && portErr == nil {
 			err = servParams.SetShortHost(host, port)
 			if err != nil {
-				fmt.Println("Fail set short host from cli flags")
+				logger.Log.Errorf("Fail set short host from cli flags: %s", err)
 			}
 		}
 	}
@@ -145,12 +142,10 @@ func GetParams() ParameterConfig {
 		if storageErr == nil {
 			err = servParams.SetFileStoragePath(storagePath)
 			if err != nil {
-				fmt.Println("Fail set file storage path from cli flags")
+				logger.Log.Errorf("Fail set file storage path from cli flags: %s", err)
 			}
 		}
 	}
-
-	logger.Log.Infof("Config: defaultHost %s, shortHost %s, filePath %s", servParams.defaultHost, servParams.shortHost, servParams.fileStoragePath)
 
 	return &servParams
 }

@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"github.com/MagicNetLab/ya-practicum-shortener/internal/config"
 	"github.com/MagicNetLab/ya-practicum-shortener/internal/service/logger"
-	"log"
 )
 
 type store struct {
@@ -15,7 +14,7 @@ type store struct {
 
 func (s *store) PutLink(link string, short string) error {
 	if link == "" || short == "" {
-		log.Printf("Faled store link: empty link(%s) or short(%s)", link, short)
+		logger.Log.Errorf("Faled store link: empty link(%s) or short(%s)", link, short)
 		return errors.New("incorrect params to store link")
 	}
 

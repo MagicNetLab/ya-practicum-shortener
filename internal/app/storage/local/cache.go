@@ -64,6 +64,7 @@ func (cs *cacheStore) Save(short string, link string) error {
 			logger.Log.Errorf("Failed to write local file storage: %s", err)
 			return err
 		}
+
 		if err := writer.Flush(); err != nil {
 			logger.Log.Errorf("Failed to flush local file storage: %s", err)
 		}
