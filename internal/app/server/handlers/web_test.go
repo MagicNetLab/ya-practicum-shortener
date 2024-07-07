@@ -66,7 +66,7 @@ func Test_encodeLinkHeader(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			request := httptest.NewRequest(tt.method, tt.request, strings.NewReader(tt.body))
 			w := httptest.NewRecorder()
-			h := http.HandlerFunc(encodeLinkHeader)
+			h := encodeHandler()
 			h(w, request)
 
 			result := w.Result()
@@ -118,7 +118,7 @@ func Test_decodeLinkHeader(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			request := httptest.NewRequest(tt.method, tt.request, nil)
 			w := httptest.NewRecorder()
-			h := http.HandlerFunc(decodeLinkHeader)
+			h := decodeHandler()
 			h(w, request)
 
 			result := w.Result()
