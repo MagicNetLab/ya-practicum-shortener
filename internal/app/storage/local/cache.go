@@ -3,8 +3,9 @@ package local
 import (
 	"bufio"
 	"encoding/json"
-	"github.com/MagicNetLab/ya-practicum-shortener/internal/service/logger"
 	"os"
+
+	"github.com/MagicNetLab/ya-practicum-shortener/internal/service/logger"
 )
 
 type cacheStore struct {
@@ -12,13 +13,8 @@ type cacheStore struct {
 	path          string
 }
 
-type storeFileData struct {
-	Short string `json:"short"`
-	Link  string `json:"link"`
-}
-
-func (cs *cacheStore) Load() ([]storeFileData, error) {
-	data := make([]storeFileData, 0)
+func (cs *cacheStore) Load() ([]StoreEntity, error) {
+	data := make([]StoreEntity, 0)
 	file, err := os.OpenFile(cs.path, os.O_RDONLY|os.O_WRONLY|os.O_CREATE, 0666)
 	if err != nil {
 		return data, err
@@ -27,7 +23,7 @@ func (cs *cacheStore) Load() ([]storeFileData, error) {
 
 	scanner := bufio.NewScanner(file)
 	for scanner.Scan() {
-		row := storeFileData{}
+		row := StoreEntity{}
 		if err := json.Unmarshal(scanner.Bytes(), &row); err != nil {
 			logger.Log.Errorf("Failed to parse cache file: %s", err)
 			return data, err
@@ -49,7 +45,7 @@ func (cs *cacheStore) Save(short string, link string) error {
 		defer file.Close()
 
 		writer := bufio.NewWriter(file)
-		rowData := storeFileData{
+		rowData := StoreEntity{
 			Short: short,
 			Link:  link,
 		}
@@ -86,3 +82,7 @@ func (cs *cacheStore) SetInitialized(isInitialized bool) {
 }
 
 var storeFile cacheStore
+
+func GetCacheStore() CacheStoreInterface {
+	return &storeFile
+}

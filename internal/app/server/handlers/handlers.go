@@ -18,17 +18,17 @@ func GetHandlers() MapHandlers {
 	handlers["default"] = RouteHandler{
 		Method:  http.MethodPost,
 		Path:    "/",
-		Handler: requestMiddlewares(encodeHandler()),
+		Handler: applyMiddlewares(encodeHandler()),
 	}
 	handlers["apiDefault"] = RouteHandler{
 		Method:  http.MethodPost,
 		Path:    "/api/shorten",
-		Handler: requestMiddlewares(apiEncodeHandler()),
+		Handler: applyMiddlewares(apiEncodeHandler()),
 	}
 	handlers["short"] = RouteHandler{
 		Method:  http.MethodGet,
 		Path:    "/{short}",
-		Handler: requestMiddlewares(decodeHandler()),
+		Handler: applyMiddlewares(decodeHandler()),
 	}
 
 	return handlers

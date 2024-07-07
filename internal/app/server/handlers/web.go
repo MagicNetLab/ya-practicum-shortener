@@ -2,13 +2,13 @@ package handlers
 
 import (
 	"fmt"
-	"github.com/MagicNetLab/ya-practicum-shortener/internal/app/shortgen"
+	"io"
+	"net/http"
+
 	"github.com/MagicNetLab/ya-practicum-shortener/internal/app/storage"
 	"github.com/MagicNetLab/ya-practicum-shortener/internal/config"
 	"github.com/MagicNetLab/ya-practicum-shortener/internal/service/logger"
 	"github.com/go-chi/chi/v5"
-	"io"
-	"net/http"
 )
 
 func encodeHandler() http.HandlerFunc {
@@ -39,12 +39,9 @@ func encodeHandler() http.HandlerFunc {
 			return
 		}
 
-		short := shortgen.GetShortLink(7)
-		store := storage.GetStore()
-		err = store.PutLink(string(link), short)
+		short, err := generateShortLink(string(link))
 		if err != nil {
 			http.Error(w, "Internal Server Error", http.StatusInternalServerError)
-
 			return
 		}
 

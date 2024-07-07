@@ -1,10 +1,11 @@
 package config
 
 import (
+	"strings"
+
 	"github.com/MagicNetLab/ya-practicum-shortener/internal/config/env"
 	"github.com/MagicNetLab/ya-practicum-shortener/internal/config/flags"
 	"github.com/MagicNetLab/ya-practicum-shortener/internal/service/logger"
-	"strings"
 )
 
 type ParameterConfig interface {
@@ -18,7 +19,7 @@ type ParameterConfig interface {
 }
 
 // TODO разделить структуру на 2 для defaultHost и shortHost
-type params struct {
+type configParams struct {
 	defaultHost     string
 	defaultPort     string
 	shortHost       string
@@ -26,44 +27,44 @@ type params struct {
 	fileStoragePath string
 }
 
-func (sp *params) SetFileStoragePath(path string) error {
+func (sp *configParams) SetFileStoragePath(path string) error {
 	sp.fileStoragePath = path
 	return nil
 }
 
-func (sp *params) GetFileStoragePath() string {
+func (sp *configParams) GetFileStoragePath() string {
 	return sp.fileStoragePath
 }
 
-func (sp *params) IsValid() bool {
+func (sp *configParams) IsValid() bool {
 	return sp.defaultHost != "" && sp.defaultPort != "" && sp.shortHost != "" && sp.shortPort != "" && sp.fileStoragePath != ""
 }
 
-func (sp *params) SetDefaultHost(host string, port string) error {
+func (sp *configParams) SetDefaultHost(host string, port string) error {
 	sp.defaultHost = host
 	sp.defaultPort = port
 
 	return nil
 }
 
-func (sp *params) SetShortHost(host string, port string) error {
+func (sp *configParams) SetShortHost(host string, port string) error {
 	sp.shortHost = host
 	sp.shortPort = port
 
 	return nil
 }
 
-func (sp *params) GetDefaultHost() string {
+func (sp *configParams) GetDefaultHost() string {
 	p := []string{sp.defaultHost, sp.defaultPort}
 	return strings.Join(p, ":")
 }
 
-func (sp *params) GetShortHost() string {
+func (sp *configParams) GetShortHost() string {
 	p := []string{sp.shortHost, sp.shortPort}
 	return strings.Join(p, ":")
 }
 
-var servParams params
+var servParams configParams
 
 func GetParams() ParameterConfig {
 	if servParams.IsValid() {
