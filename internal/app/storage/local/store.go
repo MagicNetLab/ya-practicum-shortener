@@ -3,10 +3,12 @@ package local
 import (
 	"errors"
 	"fmt"
+
 	"github.com/MagicNetLab/ya-practicum-shortener/internal/config"
 	"github.com/MagicNetLab/ya-practicum-shortener/internal/service/logger"
 )
 
+// todo use sync.RWMutex???
 type store struct {
 	isCacheLoaded bool
 	store         map[string]string
@@ -14,13 +16,14 @@ type store struct {
 
 func (s *store) PutLink(link string, short string) error {
 	if link == "" || short == "" {
-		logger.Log.Errorf("Faled store link: empty link(%s) or short(%s)", link, short)
+		logger.Log.Errorf("Failed store link: empty link(%s) or short(%s)", link, short)
 		return errors.New("incorrect params to store link")
 	}
 
 	s.store[short] = link
 
-	_ = storeFile.Save(short, link)
+	cacheStore := GetCacheStore()
+	_ = cacheStore.Save(short, link)
 
 	return nil
 }
@@ -43,22 +46,32 @@ func (s *store) HasShort(short string) bool {
 func (s *store) Init() {
 	conf := config.GetParams()
 	if conf.IsValid() && !s.isCacheLoaded {
-		fileStoragePath := conf.GetFileStoragePath()
-		if fileStoragePath != "" {
-			storeFile.SetPath(fileStoragePath)
-			storeFile.SetInitialized(true)
-			data, err := storeFile.Load()
-			if err != nil {
-				logger.Log.Errorf("Failed to load local file storage: %s", err)
-				return
-			}
-
-			for _, v := range data {
-				s.store[v.Short] = v.Link
-			}
+		err := s.loadFromFile(conf.GetFileStoragePath())
+		if err != nil {
+			logger.Log.Errorf("Failed to load local file storage: %s", err)
+			return
 		}
+
 		s.isCacheLoaded = true
 	}
+}
+
+func (s *store) loadFromFile(filePath string) error {
+	cacheStore := GetCacheStore()
+	if filePath != "" {
+		cacheStore.SetPath(filePath)
+		cacheStore.SetInitialized(true)
+		data, err := cacheStore.Load()
+		if err != nil {
+			return err
+		}
+
+		for _, v := range data {
+			s.store[v.Short] = v.Link
+		}
+	}
+
+	return nil
 }
 
 var Store = store{store: make(map[string]string, 2)}

@@ -2,10 +2,9 @@ package handlers
 
 import (
 	"encoding/json"
-	"github.com/MagicNetLab/ya-practicum-shortener/internal/app/shortgen"
-	"github.com/MagicNetLab/ya-practicum-shortener/internal/app/storage"
-	"github.com/MagicNetLab/ya-practicum-shortener/internal/config"
 	"net/http"
+
+	"github.com/MagicNetLab/ya-practicum-shortener/internal/config"
 )
 
 type APIRequest struct {
@@ -16,10 +15,10 @@ type APIResponse struct {
 	Result string `json:"result"`
 }
 
-var shortRequest APIRequest
-
 func apiEncodeHandler() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
+		var shortRequest APIRequest
+
 		if r.Method != http.MethodPost {
 			w.Header().Set("content-type", "text/plain")
 			w.WriteHeader(http.StatusForbidden)
@@ -32,9 +31,7 @@ func apiEncodeHandler() http.HandlerFunc {
 			return
 		}
 
-		short := shortgen.GetShortLink(7)
-		store := storage.GetStore()
-		err := store.PutLink(shortRequest.URL, short)
+		short, err := generateShortLink(shortRequest.URL)
 		if err != nil {
 			http.Error(w, "Internal Server Error", http.StatusInternalServerError)
 			return
@@ -46,14 +43,10 @@ func apiEncodeHandler() http.HandlerFunc {
 			Result: redirectLink,
 		}
 
-		resp, err := json.Marshal(apiResult)
-		if err != nil {
-			http.Error(w, err.Error(), http.StatusInternalServerError)
-			return
-		}
-
 		w.Header().Set("content-type", "application/json")
 		w.WriteHeader(http.StatusCreated)
-		w.Write(resp)
+		if err := json.NewEncoder(w).Encode(apiResult); err != nil {
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+		}
 	}
 }

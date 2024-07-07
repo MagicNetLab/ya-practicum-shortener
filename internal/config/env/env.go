@@ -2,18 +2,19 @@ package env
 
 import (
 	"errors"
-	"github.com/MagicNetLab/ya-practicum-shortener/internal/service/logger"
-	"github.com/caarlos0/env/v6"
-	"github.com/joho/godotenv"
 	"log"
 	"os"
 	"strings"
+
+	"github.com/MagicNetLab/ya-practicum-shortener/internal/service/logger"
+	"github.com/caarlos0/env/v6"
+	"github.com/joho/godotenv"
 )
 
 type Config struct {
-	baseHost    []string `env:"SERVER_ADDRESS" envSeparator:":"`
-	shortHost   []string `env:"BASE_URL" envSeparator:":"`
-	fileStorage string   `env:"FILE_STORAGE_PATH"`
+	baseHost        []string `env:"SERVER_ADDRESS" envSeparator:":"`
+	shortHost       []string `env:"BASE_URL" envSeparator:":"`
+	fileStoragePath string   `env:"FILE_STORAGE_PATH"`
 }
 
 var envConf = Config{}
@@ -75,7 +76,7 @@ func (e *Config) GetShortPort() (string, error) {
 }
 
 func (e Config) HasFileStoragePath() bool {
-	return e.fileStorage != ""
+	return e.fileStoragePath != ""
 }
 
 func (e Config) GetFileStoragePath() (string, error) {
@@ -83,7 +84,7 @@ func (e Config) GetFileStoragePath() (string, error) {
 		return "", errors.New("file storage path not init")
 	}
 
-	return e.fileStorage, nil
+	return e.fileStoragePath, nil
 }
 
 func Parse() (Config, error) {
@@ -113,7 +114,7 @@ func Parse() (Config, error) {
 	fileStorage := os.Getenv("FILE_STORAGE_PATH")
 	logger.Log.Infof("env storage param: %s", os.Getenv("FILE_STORAGE_PATH"))
 	if fileStorage != "" {
-		envConf.fileStorage = fileStorage
+		envConf.fileStoragePath = fileStorage
 	}
 
 	return envConf, nil

@@ -1,10 +1,11 @@
 package main
 
 import (
+	"log"
+
 	"github.com/MagicNetLab/ya-practicum-shortener/internal/app/server"
 	"github.com/MagicNetLab/ya-practicum-shortener/internal/config"
 	"github.com/MagicNetLab/ya-practicum-shortener/internal/service/logger"
-	"log"
 )
 
 func main() {
