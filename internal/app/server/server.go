@@ -37,11 +37,17 @@ func getListeners(configurator configurator) listeners {
 		method:  handlers["shot"].Method,
 		handler: handlers["short"].Handler,
 	}
+	pingRoute := route{
+		path:    handlers["dbPing"].Path,
+		method:  handlers["dbPing"].Method,
+		handler: handlers["dbPing"].Handler,
+	}
 
 	l := make(listeners)
 	l.Append(configurator.GetDefaultHost(), defaultRoute)
 	l.Append(configurator.GetDefaultHost(), apiDefaultRoute)
 	l.Append(configurator.GetShortHost(), shortRoute)
+	l.Append(configurator.GetDefaultHost(), pingRoute)
 
 	return l
 }

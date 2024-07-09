@@ -6,6 +6,7 @@ import (
 	"net/http"
 
 	"github.com/MagicNetLab/ya-practicum-shortener/internal/app/storage"
+	"github.com/MagicNetLab/ya-practicum-shortener/internal/app/storage/postgres"
 	"github.com/MagicNetLab/ya-practicum-shortener/internal/config"
 	"github.com/MagicNetLab/ya-practicum-shortener/internal/service/logger"
 	"github.com/go-chi/chi/v5"
@@ -84,5 +85,17 @@ func decodeHandler() http.HandlerFunc {
 		}
 
 		http.NotFound(w, r)
+	}
+}
+
+func pingHandler() http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		isPostgresOK := postgres.Connect()
+		logger.Log.Infoln(isPostgresOK)
+		if !isPostgresOK {
+			w.WriteHeader(http.StatusInternalServerError)
+		}
+
+		w.WriteHeader(http.StatusOK)
 	}
 }

@@ -30,6 +30,11 @@ func GetHandlers() MapHandlers {
 		Path:    "/{short}",
 		Handler: applyMiddlewares(decodeHandler()),
 	}
+	handlers["dbPing"] = RouteHandler{
+		Method:  http.MethodGet,
+		Path:    "/ping",
+		Handler: applyMiddlewares(pingHandler()),
+	}
 
 	return handlers
 }
