@@ -15,8 +15,8 @@ type ParameterConfig interface {
 	GetShortHost() string
 	SetFileStoragePath(path string) error
 	GetFileStoragePath() string
-	SetDbConnectParams(params string) error
-	GetDbConnectParams() string
+	SetDBConnectParams(params string) error
+	GetDBConnectParams() string
 	IsValid() bool
 }
 
@@ -72,12 +72,12 @@ func (sp *configParams) GetShortHost() string {
 	return strings.Join(p, ":")
 }
 
-func (sp *configParams) SetDbConnectParams(params string) error {
+func (sp *configParams) SetDBConnectParams(params string) error {
 	sp.dbConnectParams = params
 	return nil
 }
 
-func (sp *configParams) GetDbConnectParams() string {
+func (sp *configParams) GetDBConnectParams() string {
 	return sp.dbConnectParams
 }
 
@@ -129,10 +129,10 @@ func GetParams() ParameterConfig {
 			}
 		}
 
-		if envConf.HasDbConnectParams() {
+		if envConf.HasDBConnectParams() {
 			dbConnectPatams, dbParamsErr := envConf.GetDBConnectParams()
 			if dbParamsErr == nil {
-				err = servParams.SetDbConnectParams(dbConnectPatams)
+				err = servParams.SetDBConnectParams(dbConnectPatams)
 				if err != nil {
 					logger.Log.Errorf("Fail set db connect params from env: %s", err)
 				}
@@ -177,7 +177,7 @@ func GetParams() ParameterConfig {
 	if cliConf.HasDBConnectParam() {
 		dbConnectParams, dbParamsErr := cliConf.GetDBConnectParam()
 		if dbParamsErr == nil {
-			err = servParams.SetDbConnectParams(dbConnectParams)
+			err = servParams.SetDBConnectParams(dbConnectParams)
 			if err != nil {
 				logger.Log.Errorf("Fail set db connect params from cli flags: %s", err)
 			}

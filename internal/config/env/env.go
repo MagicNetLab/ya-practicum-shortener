@@ -86,12 +86,12 @@ func (e Config) GetFileStoragePath() (string, error) {
 	return e.fileStoragePath, nil
 }
 
-func (e Config) HasDbConnectParams() bool {
+func (e Config) HasDBConnectParams() bool {
 	return e.dbConnectParams != ""
 }
 
 func (e Config) GetDBConnectParams() (string, error) {
-	if !e.HasDbConnectParams() {
+	if !e.HasDBConnectParams() {
 		return "", errors.New("db connect params not init")
 	}
 
