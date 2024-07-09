@@ -10,7 +10,7 @@ import (
 
 func Connect() bool {
 	parameterConfig := config.GetParams()
-	dbConnect := parameterConfig.GetDbConnectParams()
+	dbConnect := parameterConfig.GetDBConnectParams()
 
 	if dbConnect == "" {
 		logger.Log.Errorf("Postgres connection params not configured")
