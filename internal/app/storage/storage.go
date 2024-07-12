@@ -24,7 +24,7 @@ func GetStore() (LinkStore, error) {
 	err := store.Init()
 	if err != nil {
 		logger.Log.Infof("Storage init error: %s", err.Error())
-		return nil, err
+		//return nil, err
 	}
 
 	return store, nil
