@@ -6,6 +6,7 @@ import (
 	"os"
 	"strings"
 
+	"github.com/MagicNetLab/ya-practicum-shortener/internal/service/logger"
 	"github.com/joho/godotenv"
 )
 
@@ -121,6 +122,7 @@ func Parse() (Config, error) {
 
 	dbParams := os.Getenv("DATABASE_DSN")
 	if dbParams != "" {
+		logger.Log.Infof("env DATABASE_DSN: %s", dbParams)
 		envConf.dbConnectString = dbParams
 	}
 
