@@ -70,9 +70,20 @@ func decodeHandler() http.HandlerFunc {
 		}
 
 		short := chi.URLParam(r, "short")
-		store := storage.GetStore()
 
-		if store.HasShort(short) {
+		store, err := storage.GetStore()
+		if err != nil {
+			logger.Log.Errorf("Failed to get store %v", err)
+			http.Error(w, "Internal Server Error", http.StatusInternalServerError)
+		}
+
+		hasShort, err := store.HasShort(short)
+		if err != nil {
+			logger.Log.Errorf("Failed to check short %v", err)
+			http.Error(w, "Internal Server Error", http.StatusInternalServerError)
+		}
+
+		if hasShort {
 			link, err := store.GetLink(short)
 			if err != nil {
 				http.NotFound(w, r)
@@ -90,7 +101,7 @@ func decodeHandler() http.HandlerFunc {
 
 func pingHandler() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		isPostgresOK := postgres.Connect()
+		isPostgresOK := postgres.Ping()
 		logger.Log.Infoln(isPostgresOK)
 		if !isPostgresOK {
 			w.WriteHeader(http.StatusInternalServerError)

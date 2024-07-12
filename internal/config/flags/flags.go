@@ -22,8 +22,8 @@ type CliConfigurator interface {
 	GetShortPort() (string, error)
 	HasFileStoragePath() bool
 	GetFileStoragePath() (string, error)
-	HasDBConnectParam() bool
-	GetDBConnectParam() (string, error)
+	HasDBConnectString() bool
+	GetDBConnectString() (string, error)
 }
 
 type cliConf struct {
@@ -32,7 +32,7 @@ type cliConf struct {
 	shortHost       string
 	shortPort       string
 	fileStoragePath string
-	dbConnectParam  string
+	dbConnectString string
 }
 
 func (cc *cliConf) HasDefaultHost() bool {
@@ -87,16 +87,16 @@ func (cc *cliConf) GetFileStoragePath() (string, error) {
 	return cc.fileStoragePath, nil
 }
 
-func (cc *cliConf) HasDBConnectParam() bool {
-	return cc.dbConnectParam != ""
+func (cc *cliConf) HasDBConnectString() bool {
+	return cc.dbConnectString != ""
 }
 
-func (cc *cliConf) GetDBConnectParam() (string, error) {
-	if !cc.HasDBConnectParam() {
+func (cc *cliConf) GetDBConnectString() (string, error) {
+	if !cc.HasDBConnectString() {
 		return "", errors.New("database connect param not set")
 	}
 
-	return cc.dbConnectParam, nil
+	return cc.dbConnectString, nil
 }
 
 var conf = cliConf{}
@@ -105,12 +105,12 @@ func Parse() CliConfigurator {
 	var defaultHost = ""
 	var shortHost = ""
 	var fileStorage = ""
-	var dbConnectParam = ""
+	var dbConnectString = ""
 
 	flag.StringVar(&defaultHost, defaultHostKey, "", "Base address")
 	flag.StringVar(&shortHost, shortHostKey, "", "short links host")
 	flag.StringVar(&fileStorage, fileStoragePath, "", "file storage path")
-	flag.StringVar(&dbConnectParam, dbConnectKey, "", "database connect param")
+	flag.StringVar(&dbConnectString, dbConnectKey, "", "database connect param")
 	flag.Parse()
 
 	dh := strings.Split(defaultHost, ":")
@@ -127,7 +127,7 @@ func Parse() CliConfigurator {
 
 	conf.fileStoragePath = fileStorage
 
-	conf.dbConnectParam = dbConnectParam
+	conf.dbConnectString = dbConnectString
 
 	return &conf
 }

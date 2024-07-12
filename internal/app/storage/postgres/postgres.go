@@ -8,9 +8,9 @@ import (
 	_ "github.com/jackc/pgx/v5/stdlib"
 )
 
-func Connect() bool {
+func Ping() bool {
 	parameterConfig := config.GetParams()
-	dbConnect := parameterConfig.GetDBConnectParams()
+	dbConnect := parameterConfig.GetDBConnectString()
 
 	if dbConnect == "" {
 		logger.Log.Errorf("Postgres connection params not configured")

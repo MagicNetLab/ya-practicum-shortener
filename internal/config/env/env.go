@@ -13,7 +13,7 @@ type Config struct {
 	baseHost        []string `env:"SERVER_ADDRESS" envSeparator:":"`
 	shortHost       []string `env:"BASE_URL" envSeparator:":"`
 	fileStoragePath string   `env:"FILE_STORAGE_PATH"`
-	dbConnectParams string   `env:"DATABASE_DSN"`
+	dbConnectString string   `env:"DATABASE_DSN"`
 }
 
 var envConf = Config{}
@@ -86,16 +86,16 @@ func (e Config) GetFileStoragePath() (string, error) {
 	return e.fileStoragePath, nil
 }
 
-func (e Config) HasDBConnectParams() bool {
-	return e.dbConnectParams != ""
+func (e Config) HasDBConnectString() bool {
+	return e.dbConnectString != ""
 }
 
-func (e Config) GetDBConnectParams() (string, error) {
-	if !e.HasDBConnectParams() {
+func (e Config) GetDBConnectString() (string, error) {
+	if !e.HasDBConnectString() {
 		return "", errors.New("db connect params not init")
 	}
 
-	return e.dbConnectParams, nil
+	return e.dbConnectString, nil
 }
 
 func Parse() (Config, error) {
@@ -121,7 +121,7 @@ func Parse() (Config, error) {
 
 	dbParams := os.Getenv("DATABASE_DSN")
 	if dbParams != "" {
-		envConf.dbConnectParams = dbParams
+		envConf.dbConnectString = dbParams
 	}
 
 	return envConf, nil

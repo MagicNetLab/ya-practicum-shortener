@@ -37,23 +37,29 @@ func (s *store) GetLink(short string) (string, error) {
 	return "", fmt.Errorf("short %s not found", short)
 }
 
-func (s *store) HasShort(short string) bool {
+func (s *store) HasShort(short string) (bool, error) {
 	_, ok := s.store[short]
 
-	return ok
+	return ok, nil
 }
 
-func (s *store) Init() {
+func (s *store) Init() error {
 	conf := config.GetParams()
-	if conf.IsValid() && !s.isCacheLoaded {
+	if !conf.IsValid() {
+		return errors.New("failed init local storage: invalid params")
+	}
+
+	if !s.isCacheLoaded {
 		err := s.loadFromFile(conf.GetFileStoragePath())
 		if err != nil {
 			logger.Log.Errorf("Failed to load local file storage: %s", err)
-			return
+			return err
 		}
 
 		s.isCacheLoaded = true
 	}
+
+	return nil
 }
 
 func (s *store) loadFromFile(filePath string) error {
