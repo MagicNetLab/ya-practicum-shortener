@@ -129,7 +129,7 @@ func (s *store) migration() error {
 	}
 
 	m, err := migrate.NewWithDatabaseInstance(
-		"file://../../migrations",
+		"file://migrations",
 		"postgres",
 		driver,
 	)
@@ -150,8 +150,6 @@ func parseConnectString(connectString string) (map[string]string, error) {
 	if connectString == "" {
 		return params, errors.New("connect params is empty")
 	}
-
-	logger.Log.Infof("start parse connect string: %s", connectString)
 
 	p := strings.Split(connectString, " ")
 	for _, v := range p {
