@@ -133,11 +133,12 @@ func (s *store) migration() error {
 		"postgres",
 		driver,
 	)
-	if err != nil {
-		return errors.New("could not init migrations")
-	}
 
-	m.Up()
+	if err != nil {
+		logger.Log.Errorf("could not init migrations: %s", err)
+	} else {
+		m.Up()
+	}
 
 	return nil
 }
