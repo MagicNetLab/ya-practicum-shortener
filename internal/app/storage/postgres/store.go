@@ -25,30 +25,31 @@ func (s *store) Init() error {
 	conf := config.GetParams()
 
 	connectParams, err := parseConnectString(conf.GetDBConnectString())
-	if err != nil {
+	if err == nil {
+		s.params = connectParams
+		s.connectString = fmt.Sprintf(
+			"postgres://%s:%s@%s:%s/%s?sslmode=%s",
+			connectParams[DBUser],
+			connectParams[DBPassword],
+			connectParams[DBHost],
+			connectParams[DBPort],
+			connectParams[DBName],
+			connectParams[DBSslMode])
+
+		con, err := pgx.Connect(context.Background(), s.connectString)
+		if err != nil {
+			logger.Log.Infof("Connect string is incorrect %s", err)
+			return err
+		}
+
+		err = con.Ping(context.Background())
+		if err != nil {
+			logger.Log.Infof("Unable to connect to database %s", err)
+			return err
+		}
+	} else {
 		logger.Log.Infof("Faled parse connect string: %s", conf.GetDBConnectString())
-		return err
-	}
-
-	s.params = connectParams
-	s.connectString = fmt.Sprintf(
-		"postgres://%s:%s@%s:%s/%s?sslmode=%s",
-		connectParams[DBUser],
-		connectParams[DBPassword],
-		connectParams[DBHost],
-		connectParams[DBPort],
-		connectParams[DBName],
-		connectParams[DBSslMode])
-
-	con, err := pgx.Connect(context.Background(), s.connectString)
-	if err != nil {
-		logger.Log.Infof("Connect string is incorrect %s", err)
-		return err
-	}
-
-	err = con.Ping(context.Background())
-	if err != nil {
-		logger.Log.Infof("Unable to connect to database %s", err)
+		s.connectString = conf.GetDBConnectString()
 	}
 
 	if err = s.migration(); err != nil {
