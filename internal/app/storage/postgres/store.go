@@ -151,6 +151,8 @@ func parseConnectString(connectString string) (map[string]string, error) {
 		return params, errors.New("connect params is empty")
 	}
 
+	logger.Log.Infof("start parse connect string: %s", connectString)
+
 	p := strings.Split(connectString, " ")
 	for _, v := range p {
 		val := strings.Split(v, "=")
