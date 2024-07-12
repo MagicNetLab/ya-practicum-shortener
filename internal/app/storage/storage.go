@@ -14,7 +14,7 @@ var storageList = map[string]LinkStore{
 func GetStore() (LinkStore, error) {
 	var store LinkStore
 	appConfig := config.GetParams()
-	if appConfig.HasDBConnectParams() {
+	if appConfig.GetDBConnectString() != "" {
 		store = storageList["postgres"]
 	} else {
 		store = storageList["local"]

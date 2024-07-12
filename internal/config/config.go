@@ -17,8 +17,6 @@ type ParameterConfig interface {
 	GetFileStoragePath() string
 	SetDBConnectString(params string) error
 	GetDBConnectString() string
-	GetDBConnectParams() (map[string]string, error)
-	HasDBConnectParams() bool
 	IsValid() bool
 }
 
@@ -30,7 +28,6 @@ type configParams struct {
 	shortPort       string
 	fileStoragePath string
 	dbConnectString string
-	dbConnectParams map[string]string
 }
 
 func (sp *configParams) SetFileStoragePath(path string) error {
@@ -77,26 +74,12 @@ func (sp *configParams) GetShortHost() string {
 
 func (sp *configParams) SetDBConnectString(params string) error {
 	sp.dbConnectString = params
-	connectParams := make(map[string]string)
-
-	if params == "" {
-		sp.dbConnectParams = connectParams
-		return nil
-	}
 
 	return nil
 }
 
 func (sp *configParams) GetDBConnectString() string {
 	return sp.dbConnectString
-}
-
-func (sp *configParams) GetDBConnectParams() (map[string]string, error) {
-	return sp.dbConnectParams, nil
-}
-
-func (sp *configParams) HasDBConnectParams() bool {
-	return len(sp.dbConnectParams) > 0
 }
 
 var servParams configParams
