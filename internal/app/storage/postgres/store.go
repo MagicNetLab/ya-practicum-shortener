@@ -26,6 +26,7 @@ func (s *store) Init() error {
 
 	connectParams, err := parseConnectString(conf.GetDBConnectString())
 	if err != nil {
+		logger.Log.Infof("Faled parse connect string: %s", conf.GetDBConnectString())
 		return err
 	}
 
@@ -41,7 +42,7 @@ func (s *store) Init() error {
 
 	con, err := pgx.Connect(context.Background(), s.connectString)
 	if err != nil {
-		logger.Log.Infof("Unable to connect to database %s", err)
+		logger.Log.Infof("Connect string is incorrect %s", err)
 		return err
 	}
 

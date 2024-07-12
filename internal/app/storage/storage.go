@@ -4,6 +4,7 @@ import (
 	"github.com/MagicNetLab/ya-practicum-shortener/internal/app/storage/local"
 	"github.com/MagicNetLab/ya-practicum-shortener/internal/app/storage/postgres"
 	"github.com/MagicNetLab/ya-practicum-shortener/internal/config"
+	"github.com/MagicNetLab/ya-practicum-shortener/internal/service/logger"
 )
 
 var storageList = map[string]LinkStore{
@@ -22,6 +23,7 @@ func GetStore() (LinkStore, error) {
 
 	err := store.Init()
 	if err != nil {
+		logger.Log.Infof("Storage init error: %s", err.Error())
 		return nil, err
 	}
 
