@@ -79,6 +79,41 @@ func (s *store) PutLink(link string, short string) error {
 	return nil
 }
 
+func (s *store) PutBatchLinksArray(StoreBatchLicksArray map[string]string) error {
+	ctx := context.Background()
+	conn, err := pgx.Connect(ctx, s.connectString)
+	if err != nil {
+		return errors.New("database connection error: " + err.Error())
+	}
+	defer conn.Close(ctx)
+
+	transaction, err := conn.Begin(ctx)
+	if err != nil {
+		return err
+	}
+	defer transaction.Rollback(ctx)
+
+	_, err = transaction.Prepare(ctx, "batch-insert", "INSERT INTO links (short, link) VALUES ($1, $2)")
+	if err != nil {
+		return err
+	}
+
+	for key, value := range StoreBatchLicksArray {
+		cTag, err := transaction.Exec(ctx, "batch-insert", key, value)
+		if err != nil {
+			return err
+		}
+
+		if cTag.RowsAffected() != 1 {
+			return errors.New("filed save data: " + cTag.String())
+		}
+	}
+
+	transaction.Commit(ctx)
+
+	return nil
+}
+
 func (s *store) GetLink(short string) (string, error) {
 	ctx := context.Background()
 	conn, err := pgx.Connect(ctx, s.connectString)

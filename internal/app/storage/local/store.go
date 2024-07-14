@@ -8,7 +8,6 @@ import (
 	"github.com/MagicNetLab/ya-practicum-shortener/internal/service/logger"
 )
 
-// todo use sync.RWMutex???
 type store struct {
 	isCacheLoaded bool
 	store         map[string]string
@@ -24,6 +23,33 @@ func (s *store) PutLink(link string, short string) error {
 
 	cacheStore := GetCacheStore()
 	_ = cacheStore.Save(short, link)
+
+	return nil
+}
+
+func (s *store) PutBatchLinksArray(StoreBatchLicksArray map[string]string) error {
+	rollback := false
+
+	for k, v := range StoreBatchLicksArray {
+		if v == "" {
+			rollback = true
+			break
+		}
+
+		err := s.PutLink(k, v)
+		if err != nil {
+			rollback = true
+			break
+		}
+	}
+
+	if rollback {
+		for k := range StoreBatchLicksArray {
+			delete(s.store, k)
+		}
+
+		return errors.New("failed to store batch links array: one of the value is empty")
+	}
 
 	return nil
 }

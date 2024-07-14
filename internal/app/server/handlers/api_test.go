@@ -82,3 +82,5 @@ func Test_apiEncodeHandler(t *testing.T) {
 		})
 	}
 }
+
+// TODO test apiBatchEncodeHandler

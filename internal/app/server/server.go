@@ -1,9 +1,10 @@
 package server
 
 import (
-	handle "github.com/MagicNetLab/ya-practicum-shortener/internal/app/server/handlers"
 	"log"
 	"net/http"
+
+	handle "github.com/MagicNetLab/ya-practicum-shortener/internal/app/server/handlers"
 )
 
 func Run(configurator configurator) {
@@ -32,6 +33,11 @@ func getListeners(configurator configurator) listeners {
 		method:  handlers["apiDefault"].Method,
 		handler: handlers["apiDefault"].Handler,
 	}
+	apiBatchDefaultRoute := route{
+		path:    handlers["apiBatchDefault"].Path,
+		method:  handlers["apiBatchDefault"].Method,
+		handler: handlers["apiBatchDefault"].Handler,
+	}
 	shortRoute := route{
 		path:    handlers["short"].Path,
 		method:  handlers["shot"].Method,
@@ -48,6 +54,7 @@ func getListeners(configurator configurator) listeners {
 	l.Append(configurator.GetDefaultHost(), apiDefaultRoute)
 	l.Append(configurator.GetShortHost(), shortRoute)
 	l.Append(configurator.GetDefaultHost(), pingRoute)
+	l.Append(configurator.GetDefaultHost(), apiBatchDefaultRoute)
 
 	return l
 }
