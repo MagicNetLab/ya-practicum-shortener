@@ -9,5 +9,7 @@ type LinkStore interface {
 
 	HasShort(short string) (bool, error)
 
+	GetShort(link string) (string, error)
+
 	Init() error
 }

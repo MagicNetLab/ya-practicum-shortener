@@ -2,7 +2,6 @@ package env
 
 import (
 	"errors"
-	"log"
 	"os"
 	"strings"
 
@@ -102,7 +101,7 @@ func (e Config) GetDBConnectString() (string, error) {
 func Parse() (Config, error) {
 	err := godotenv.Load(".env")
 	if err != nil {
-		log.Printf(".env file not found: %s", err)
+		logger.Log.Errorf(".env file not found: %s", err)
 	}
 
 	baseHost := os.Getenv("SERVER_ADDRESS")
@@ -122,7 +121,6 @@ func Parse() (Config, error) {
 
 	dbParams := os.Getenv("DATABASE_DSN")
 	if dbParams != "" {
-		logger.Log.Infof("env DATABASE_DSN: %s", dbParams)
 		envConf.dbConnectString = dbParams
 	}
 

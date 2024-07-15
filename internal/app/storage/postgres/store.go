@@ -5,6 +5,7 @@ import (
 	"database/sql"
 	"errors"
 	"fmt"
+	"github.com/jackc/pgerrcode"
 	"strings"
 
 	"github.com/MagicNetLab/ya-practicum-shortener/internal/config"
@@ -20,6 +21,8 @@ type store struct {
 	params        map[string]string
 	connectString string
 }
+
+var ErrLinkUniqueConflict = errors.New("url is not unique")
 
 func (s *store) Init() error {
 	conf := config.GetParams()
@@ -69,6 +72,10 @@ func (s *store) PutLink(link string, short string) error {
 
 	commandTag, err := conn.Exec(ctx, "INSERT INTO links (short, link) VALUES ($1, $2)", short, link)
 	if err != nil {
+		if strings.Contains(err.Error(), pgerrcode.UniqueViolation) {
+			return ErrLinkUniqueConflict
+		}
+
 		return err
 	}
 
@@ -150,6 +157,24 @@ func (s *store) HasShort(short string) (bool, error) {
 	}
 
 	return true, nil
+}
+
+func (s *store) GetShort(link string) (string, error) {
+	ctx := context.Background()
+	conn, err := pgx.Connect(ctx, s.connectString)
+	if err != nil {
+		return "", errors.New("database connection error: " + err.Error())
+	}
+	defer conn.Close(ctx)
+
+	var short string
+	err = conn.QueryRow(ctx, "SELECT short FROM links WHERE link = $1", link).Scan(&short)
+	if err != nil {
+		return "", errors.New("database error: " + err.Error())
+	}
+
+	return short, nil
+
 }
 
 func (s *store) migration() error {

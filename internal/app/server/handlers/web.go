@@ -1,6 +1,7 @@
 package handlers
 
 import (
+	"errors"
 	"fmt"
 	"io"
 	"net/http"
@@ -25,7 +26,6 @@ func encodeHandler() http.HandlerFunc {
 		link, err := io.ReadAll(r.Body)
 		if err != nil {
 			http.Error(w, "Internal Server Error", http.StatusInternalServerError)
-
 			return
 		}
 
@@ -40,15 +40,27 @@ func encodeHandler() http.HandlerFunc {
 			return
 		}
 
+		conf := config.GetParams()
+
+		status := http.StatusCreated
 		short, err := generateShortLink(string(link))
 		if err != nil {
-			http.Error(w, "Internal Server Error", http.StatusInternalServerError)
-			return
+			if errors.Is(err, postgres.ErrLinkUniqueConflict) {
+				short, err = getShortLink(string(link))
+				if err != nil {
+					logger.Log.Errorf("Failed to get short link %v", err)
+					http.Error(w, "Internal Server Error", http.StatusInternalServerError)
+					return
+				}
+				status = http.StatusConflict
+			} else {
+				http.Error(w, "Internal Server Error", http.StatusInternalServerError)
+				return
+			}
 		}
 
-		conf := config.GetParams()
 		w.Header().Set("content-type", "text/plain")
-		w.WriteHeader(http.StatusCreated)
+		w.WriteHeader(status)
 		_, err = w.Write([]byte(fmt.Sprintf("http://%s/%s", conf.GetShortHost(), short)))
 		if err != nil {
 			logger.Log.Errorf("Failed to write response %v", err)

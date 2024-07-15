@@ -69,6 +69,15 @@ func (s *store) HasShort(short string) (bool, error) {
 	return ok, nil
 }
 
+func (s *store) GetShort(link string) (string, error) {
+	for k, v := range s.store {
+		if v == link {
+			return k, nil
+		}
+	}
+	return "", fmt.Errorf("short %s not found", link)
+}
+
 func (s *store) Init() error {
 	conf := config.GetParams()
 	if !conf.IsValid() {

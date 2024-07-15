@@ -1,0 +1,1 @@
+CREATE UNIQUE INDEX IF NOT EXISTS link_idx ON links (link);

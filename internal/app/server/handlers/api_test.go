@@ -59,6 +59,7 @@ func Test_apiEncodeHandler(t *testing.T) {
 			request: "/api/shorten",
 		},
 		// todo test incorrect link
+		// todo test unique link
 	}
 
 	for _, tt := range tests {

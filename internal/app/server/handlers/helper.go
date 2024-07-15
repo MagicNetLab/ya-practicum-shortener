@@ -21,3 +21,19 @@ func generateShortLink(url string) (string, error) {
 
 	return short, nil
 }
+
+func getShortLink(url string) (string, error) {
+	store, err := storage.GetStore()
+	if err != nil {
+		logger.Log.Errorf("Error init storage: %v", err)
+		return "", err
+	}
+
+	short, err := store.GetShort(url)
+	if err != nil {
+		logger.Log.Errorf("Error get short link: %v", err)
+		return "", err
+	}
+
+	return short, nil
+}

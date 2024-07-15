@@ -2,10 +2,12 @@ package handlers
 
 import (
 	"encoding/json"
+	"errors"
 	"net/http"
 
 	"github.com/MagicNetLab/ya-practicum-shortener/internal/app/shortgen"
 	"github.com/MagicNetLab/ya-practicum-shortener/internal/app/storage"
+	"github.com/MagicNetLab/ya-practicum-shortener/internal/app/storage/postgres"
 	"github.com/MagicNetLab/ya-practicum-shortener/internal/config"
 	"github.com/MagicNetLab/ya-practicum-shortener/internal/service/logger"
 )
@@ -26,20 +28,30 @@ func apiEncodeHandler() http.HandlerFunc {
 			return
 		}
 
+		conf := config.GetParams()
+		status := http.StatusCreated
 		short, err := generateShortLink(shortRequest.URL)
 		if err != nil {
-			http.Error(w, "Internal Server Error", http.StatusInternalServerError)
-			return
+			if errors.Is(err, postgres.ErrLinkUniqueConflict) {
+				short, err = getShortLink(shortRequest.URL)
+				if err != nil {
+					http.Error(w, "Unique conflict", http.StatusInternalServerError)
+					return
+				}
+				status = http.StatusConflict
+			} else {
+				http.Error(w, "Internal Server Error", http.StatusInternalServerError)
+				return
+			}
 		}
 
-		conf := config.GetParams()
 		redirectLink := "http://" + conf.GetShortHost() + "/" + short
 		apiResult := APIResponse{
 			Result: redirectLink,
 		}
 
 		w.Header().Set("content-type", "application/json")
-		w.WriteHeader(http.StatusCreated)
+		w.WriteHeader(status)
 		if err := json.NewEncoder(w).Encode(apiResult); err != nil {
 			http.Error(w, err.Error(), http.StatusInternalServerError)
 		}
