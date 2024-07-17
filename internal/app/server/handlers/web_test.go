@@ -61,6 +61,7 @@ func Test_encodeLinkHeader(t *testing.T) {
 			request: "/",
 		},
 		// todo test incorrect link
+		// todo test unique link
 	}
 
 	for _, tt := range tests {

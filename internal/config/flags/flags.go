@@ -3,8 +3,6 @@ package flags
 import (
 	"errors"
 	"flag"
-	"github.com/MagicNetLab/ya-practicum-shortener/internal/service/logger"
-	"os"
 	"strings"
 )
 
@@ -12,12 +10,8 @@ const (
 	defaultHostKey  = "a"
 	shortHostKey    = "b"
 	fileStoragePath = "f"
+	dbConnectKey    = "d"
 )
-
-// todo (Лучше объявить defaultHost и shortHost как часть структуры cliConf, а не глобальные переменные.)
-var defaultHost = ""
-var shortHost = ""
-var fileStorage = ""
 
 type CliConfigurator interface {
 	HasDefaultHost() bool
@@ -28,6 +22,8 @@ type CliConfigurator interface {
 	GetShortPort() (string, error)
 	HasFileStoragePath() bool
 	GetFileStoragePath() (string, error)
+	HasDBConnectString() bool
+	GetDBConnectString() (string, error)
 }
 
 type cliConf struct {
@@ -36,6 +32,7 @@ type cliConf struct {
 	shortHost       string
 	shortPort       string
 	fileStoragePath string
+	dbConnectString string
 }
 
 func (cc *cliConf) HasDefaultHost() bool {
@@ -90,13 +87,30 @@ func (cc *cliConf) GetFileStoragePath() (string, error) {
 	return cc.fileStoragePath, nil
 }
 
+func (cc *cliConf) HasDBConnectString() bool {
+	return cc.dbConnectString != ""
+}
+
+func (cc *cliConf) GetDBConnectString() (string, error) {
+	if !cc.HasDBConnectString() {
+		return "", errors.New("database connect param not set")
+	}
+
+	return cc.dbConnectString, nil
+}
+
 var conf = cliConf{}
 
 func Parse() CliConfigurator {
-	logger.Log.Infof("os Args: %s", strings.Join(os.Args, ""))
+	var defaultHost = ""
+	var shortHost = ""
+	var fileStorage = ""
+	var dbConnectString = ""
+
 	flag.StringVar(&defaultHost, defaultHostKey, "", "Base address")
 	flag.StringVar(&shortHost, shortHostKey, "", "short links host")
 	flag.StringVar(&fileStorage, fileStoragePath, "", "file storage path")
+	flag.StringVar(&dbConnectString, dbConnectKey, "", "database connect param")
 	flag.Parse()
 
 	dh := strings.Split(defaultHost, ":")
@@ -112,6 +126,8 @@ func Parse() CliConfigurator {
 	}
 
 	conf.fileStoragePath = fileStorage
+
+	conf.dbConnectString = dbConnectString
 
 	return &conf
 }

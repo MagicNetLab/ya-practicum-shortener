@@ -2,12 +2,10 @@ package env
 
 import (
 	"errors"
-	"log"
 	"os"
 	"strings"
 
 	"github.com/MagicNetLab/ya-practicum-shortener/internal/service/logger"
-	"github.com/caarlos0/env/v6"
 	"github.com/joho/godotenv"
 )
 
@@ -15,6 +13,7 @@ type Config struct {
 	baseHost        []string `env:"SERVER_ADDRESS" envSeparator:":"`
 	shortHost       []string `env:"BASE_URL" envSeparator:":"`
 	fileStoragePath string   `env:"FILE_STORAGE_PATH"`
+	dbConnectString string   `env:"DATABASE_DSN"`
 }
 
 var envConf = Config{}
@@ -87,18 +86,22 @@ func (e Config) GetFileStoragePath() (string, error) {
 	return e.fileStoragePath, nil
 }
 
+func (e Config) HasDBConnectString() bool {
+	return e.dbConnectString != ""
+}
+
+func (e Config) GetDBConnectString() (string, error) {
+	if !e.HasDBConnectString() {
+		return "", errors.New("db connect params not init")
+	}
+
+	return e.dbConnectString, nil
+}
+
 func Parse() (Config, error) {
 	err := godotenv.Load(".env")
 	if err != nil {
-		log.Printf(".env file not found: %s", err)
-	} else {
-		err := env.Parse(&envConf)
-		if err != nil {
-			log.Printf("Failed to parse .env file: %s", err)
-			return envConf, err
-		}
-
-		return envConf, nil
+		logger.Log.Errorf(".env file not found: %s", err)
 	}
 
 	baseHost := os.Getenv("SERVER_ADDRESS")
@@ -112,9 +115,13 @@ func Parse() (Config, error) {
 	}
 
 	fileStorage := os.Getenv("FILE_STORAGE_PATH")
-	logger.Log.Infof("env storage param: %s", os.Getenv("FILE_STORAGE_PATH"))
 	if fileStorage != "" {
 		envConf.fileStoragePath = fileStorage
+	}
+
+	dbParams := os.Getenv("DATABASE_DSN")
+	if dbParams != "" {
+		envConf.dbConnectString = dbParams
 	}
 
 	return envConf, nil

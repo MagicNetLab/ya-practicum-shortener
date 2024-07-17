@@ -15,6 +15,8 @@ type ParameterConfig interface {
 	GetShortHost() string
 	SetFileStoragePath(path string) error
 	GetFileStoragePath() string
+	SetDBConnectString(params string) error
+	GetDBConnectString() string
 	IsValid() bool
 }
 
@@ -25,6 +27,7 @@ type configParams struct {
 	shortHost       string
 	shortPort       string
 	fileStoragePath string
+	dbConnectString string
 }
 
 func (sp *configParams) SetFileStoragePath(path string) error {
@@ -37,7 +40,12 @@ func (sp *configParams) GetFileStoragePath() string {
 }
 
 func (sp *configParams) IsValid() bool {
-	return sp.defaultHost != "" && sp.defaultPort != "" && sp.shortHost != "" && sp.shortPort != "" && sp.fileStoragePath != ""
+	return sp.defaultHost != "" &&
+		sp.defaultPort != "" &&
+		sp.shortHost != "" &&
+		sp.shortPort != "" &&
+		sp.fileStoragePath != ""
+
 }
 
 func (sp *configParams) SetDefaultHost(host string, port string) error {
@@ -62,6 +70,16 @@ func (sp *configParams) GetDefaultHost() string {
 func (sp *configParams) GetShortHost() string {
 	p := []string{sp.shortHost, sp.shortPort}
 	return strings.Join(p, ":")
+}
+
+func (sp *configParams) SetDBConnectString(params string) error {
+	sp.dbConnectString = params
+
+	return nil
+}
+
+func (sp *configParams) GetDBConnectString() string {
+	return sp.dbConnectString
 }
 
 var servParams configParams
@@ -112,6 +130,15 @@ func GetParams() ParameterConfig {
 			}
 		}
 
+		if envConf.HasDBConnectString() {
+			dbConnectPatams, dbParamsErr := envConf.GetDBConnectString()
+			if dbParamsErr == nil {
+				err = servParams.SetDBConnectString(dbConnectPatams)
+				if err != nil {
+					logger.Log.Errorf("Fail set db connect params from env: %s", err)
+				}
+			}
+		}
 	}
 
 	cliConf := flags.Parse()
@@ -144,6 +171,16 @@ func GetParams() ParameterConfig {
 			err = servParams.SetFileStoragePath(storagePath)
 			if err != nil {
 				logger.Log.Errorf("Fail set file storage path from cli flags: %s", err)
+			}
+		}
+	}
+
+	if cliConf.HasDBConnectString() {
+		dbConnectParams, dbParamsErr := cliConf.GetDBConnectString()
+		if dbParamsErr == nil {
+			err = servParams.SetDBConnectString(dbConnectParams)
+			if err != nil {
+				logger.Log.Errorf("Fail set db connect params from cli flags: %s", err)
 			}
 		}
 	}
