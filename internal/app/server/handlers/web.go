@@ -40,31 +40,35 @@ func encodeHandler() http.HandlerFunc {
 			return
 		}
 
-		conf := config.GetParams()
-
-		status := http.StatusCreated
+		c := config.GetParams()
+		// todo избавиться от дублирования с api.go
 		short, err := generateShortLink(string(link))
-		if err != nil {
-			if errors.Is(err, postgres.ErrLinkUniqueConflict) {
-				short, err = getShortLink(string(link))
-				if err != nil {
-					logger.Log.Errorf("Failed to get short link %v", err)
-					http.Error(w, "Internal Server Error", http.StatusInternalServerError)
-					return
-				}
-				status = http.StatusConflict
-			} else {
-				http.Error(w, "Internal Server Error", http.StatusInternalServerError)
-				return
+		if err == nil {
+			w.Header().Set("content-type", "text/plain")
+			w.WriteHeader(http.StatusCreated)
+			_, err = w.Write([]byte(fmt.Sprintf("http://%s/%s", c.GetShortHost(), short)))
+			if err != nil {
+				logger.Log.Errorf("Failed to write response %v", err)
 			}
 		}
 
-		w.Header().Set("content-type", "text/plain")
-		w.WriteHeader(status)
-		_, err = w.Write([]byte(fmt.Sprintf("http://%s/%s", conf.GetShortHost(), short)))
-		if err != nil {
-			logger.Log.Errorf("Failed to write response %v", err)
+		if errors.Is(err, postgres.ErrLinkUniqueConflict) {
+			short, err = getShortLink(string(link))
+			if err != nil {
+				logger.Log.Errorf("Failed to get short link %v", err)
+				http.Error(w, "Internal Server Error", http.StatusInternalServerError)
+				return
+			}
+
+			w.Header().Set("content-type", "text/plain")
+			w.WriteHeader(http.StatusConflict)
+			_, err = w.Write([]byte(fmt.Sprintf("http://%s/%s", c.GetShortHost(), short)))
+			if err != nil {
+				logger.Log.Errorf("Failed to write response %v", err)
+			}
 		}
+
+		http.Error(w, "Internal Server Error", http.StatusInternalServerError)
 	}
 }
 

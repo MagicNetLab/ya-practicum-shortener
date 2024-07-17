@@ -17,6 +17,13 @@ import (
 	_ "github.com/lib/pq"
 )
 
+const (
+	insertLinkSQL  = "INSERT INTO links (short, link) VALUES ($1, $2)"
+	selectLinkSQL  = "SELECT link FROM links WHERE short = $1"
+	selectShortSQL = "SELECT short FROM links WHERE link = $1"
+	hasLinkSQL     = "SELECT count(*) FROM links WHERE short = $1"
+)
+
 type store struct {
 	params        map[string]string
 	connectString string
@@ -63,6 +70,7 @@ func (s *store) Init() error {
 }
 
 func (s *store) PutLink(link string, short string) error {
+	// todo use context with timeout from handlers
 	ctx := context.Background()
 	conn, err := pgx.Connect(ctx, s.connectString)
 	if err != nil {
@@ -70,8 +78,9 @@ func (s *store) PutLink(link string, short string) error {
 	}
 	defer conn.Close(ctx)
 
-	commandTag, err := conn.Exec(ctx, "INSERT INTO links (short, link) VALUES ($1, $2)", short, link)
+	commandTag, err := conn.Exec(ctx, insertLinkSQL, short, link)
 	if err != nil {
+		// todo use errors.Is
 		if strings.Contains(err.Error(), pgerrcode.UniqueViolation) {
 			return ErrLinkUniqueConflict
 		}
@@ -87,6 +96,8 @@ func (s *store) PutLink(link string, short string) error {
 }
 
 func (s *store) PutBatchLinksArray(StoreBatchLicksArray map[string]string) error {
+	// todo use context with timeout from handlers
+	// todo use prepared statements??
 	ctx := context.Background()
 	conn, err := pgx.Connect(ctx, s.connectString)
 	if err != nil {
@@ -100,7 +111,7 @@ func (s *store) PutBatchLinksArray(StoreBatchLicksArray map[string]string) error
 	}
 	defer transaction.Rollback(ctx)
 
-	_, err = transaction.Prepare(ctx, "batch-insert", "INSERT INTO links (short, link) VALUES ($1, $2)")
+	_, err = transaction.Prepare(ctx, "batch-insert", insertLinkSQL)
 	if err != nil {
 		return err
 	}
@@ -122,6 +133,7 @@ func (s *store) PutBatchLinksArray(StoreBatchLicksArray map[string]string) error
 }
 
 func (s *store) GetLink(short string) (string, error) {
+	// todo use context with timeout from handlers
 	ctx := context.Background()
 	conn, err := pgx.Connect(ctx, s.connectString)
 	if err != nil {
@@ -130,7 +142,7 @@ func (s *store) GetLink(short string) (string, error) {
 	defer conn.Close(ctx)
 
 	var link string
-	err = conn.QueryRow(ctx, "SELECT link FROM links WHERE short = $1", short).Scan(&link)
+	err = conn.QueryRow(ctx, selectLinkSQL, short).Scan(&link)
 	if err != nil {
 		return "", errors.New("database error: " + err.Error())
 	}
@@ -139,6 +151,7 @@ func (s *store) GetLink(short string) (string, error) {
 }
 
 func (s *store) HasShort(short string) (bool, error) {
+	// todo use context with timeout from handlers
 	ctx := context.Background()
 	conn, err := pgx.Connect(ctx, s.connectString)
 	if err != nil {
@@ -147,7 +160,7 @@ func (s *store) HasShort(short string) (bool, error) {
 	defer conn.Close(ctx)
 
 	var count int
-	err = conn.QueryRow(ctx, "SELECT count(*) FROM links WHERE short = $1", short).Scan(&count)
+	err = conn.QueryRow(ctx, hasLinkSQL, short).Scan(&count)
 	if err != nil {
 		return false, err
 	}
@@ -160,6 +173,7 @@ func (s *store) HasShort(short string) (bool, error) {
 }
 
 func (s *store) GetShort(link string) (string, error) {
+	// todo use context with timeout from handlers
 	ctx := context.Background()
 	conn, err := pgx.Connect(ctx, s.connectString)
 	if err != nil {
@@ -168,7 +182,7 @@ func (s *store) GetShort(link string) (string, error) {
 	defer conn.Close(ctx)
 
 	var short string
-	err = conn.QueryRow(ctx, "SELECT short FROM links WHERE link = $1", link).Scan(&short)
+	err = conn.QueryRow(ctx, selectShortSQL, link).Scan(&short)
 	if err != nil {
 		return "", errors.New("database error: " + err.Error())
 	}

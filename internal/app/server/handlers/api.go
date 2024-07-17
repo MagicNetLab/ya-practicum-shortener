@@ -28,33 +28,42 @@ func apiEncodeHandler() http.HandlerFunc {
 			return
 		}
 
-		conf := config.GetParams()
-		status := http.StatusCreated
+		// todo избавиться от дублирования c web.go
+		c := config.GetParams()
 		short, err := generateShortLink(shortRequest.URL)
-		if err != nil {
-			if errors.Is(err, postgres.ErrLinkUniqueConflict) {
-				short, err = getShortLink(shortRequest.URL)
-				if err != nil {
-					http.Error(w, "Unique conflict", http.StatusInternalServerError)
-					return
-				}
-				status = http.StatusConflict
-			} else {
-				http.Error(w, "Internal Server Error", http.StatusInternalServerError)
-				return
+		if err == nil {
+			redirectLink := "http://" + c.GetShortHost() + "/" + short
+			apiResult := APIResponse{
+				Result: redirectLink,
+			}
+
+			w.Header().Set("content-type", "application/json")
+			w.WriteHeader(http.StatusCreated)
+			if err := json.NewEncoder(w).Encode(apiResult); err != nil {
+				http.Error(w, err.Error(), http.StatusInternalServerError)
 			}
 		}
 
-		redirectLink := "http://" + conf.GetShortHost() + "/" + short
-		apiResult := APIResponse{
-			Result: redirectLink,
+		if errors.Is(err, postgres.ErrLinkUniqueConflict) {
+			short, err = getShortLink(shortRequest.URL)
+			if err != nil {
+				http.Error(w, "Unique conflict", http.StatusInternalServerError)
+				return
+			}
+
+			redirectLink := "http://" + c.GetShortHost() + "/" + short
+			apiResult := APIResponse{
+				Result: redirectLink,
+			}
+
+			w.Header().Set("content-type", "application/json")
+			w.WriteHeader(http.StatusConflict)
+			if err := json.NewEncoder(w).Encode(apiResult); err != nil {
+				http.Error(w, err.Error(), http.StatusInternalServerError)
+			}
 		}
 
-		w.Header().Set("content-type", "application/json")
-		w.WriteHeader(status)
-		if err := json.NewEncoder(w).Encode(apiResult); err != nil {
-			http.Error(w, err.Error(), http.StatusInternalServerError)
-		}
+		http.Error(w, "Internal Server Error", http.StatusInternalServerError)
 	}
 }
 
@@ -82,13 +91,13 @@ func apiBatchEncodeHandler() http.HandlerFunc {
 
 		var response APIBatchResponse
 		storeData := make(map[string]string)
-		conf := config.GetParams()
+		c := config.GetParams()
 
 		for _, v := range batchRequest {
 			short := shortgen.GetShortLink(7)
 			row := APIBatchResponseEntity{
 				CorrelationID: v.CorrelationID,
-				ShortURL:      "http://" + conf.GetShortHost() + "/" + short,
+				ShortURL:      "http://" + c.GetShortHost() + "/" + short,
 			}
 			storeData[short] = v.OriginalURL
 			response = append(response, row)
