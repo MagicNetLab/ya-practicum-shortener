@@ -42,6 +42,7 @@ func apiEncodeHandler() http.HandlerFunc {
 			if err := json.NewEncoder(w).Encode(apiResult); err != nil {
 				http.Error(w, err.Error(), http.StatusInternalServerError)
 			}
+			return
 		}
 
 		if errors.Is(err, postgres.ErrLinkUniqueConflict) {
@@ -61,6 +62,7 @@ func apiEncodeHandler() http.HandlerFunc {
 			if err := json.NewEncoder(w).Encode(apiResult); err != nil {
 				http.Error(w, err.Error(), http.StatusInternalServerError)
 			}
+			return
 		}
 
 		http.Error(w, "Internal Server Error", http.StatusInternalServerError)

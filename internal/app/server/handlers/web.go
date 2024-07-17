@@ -50,6 +50,7 @@ func encodeHandler() http.HandlerFunc {
 			if err != nil {
 				logger.Log.Errorf("Failed to write response %v", err)
 			}
+			return
 		}
 
 		if errors.Is(err, postgres.ErrLinkUniqueConflict) {
@@ -66,6 +67,7 @@ func encodeHandler() http.HandlerFunc {
 			if err != nil {
 				logger.Log.Errorf("Failed to write response %v", err)
 			}
+			return
 		}
 
 		http.Error(w, "Internal Server Error", http.StatusInternalServerError)
