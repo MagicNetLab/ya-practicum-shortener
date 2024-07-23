@@ -18,27 +18,32 @@ func GetHandlers() MapHandlers {
 	handlers["default"] = RouteHandler{
 		Method:  http.MethodPost,
 		Path:    "/",
-		Handler: applyMiddlewares(encodeHandler()),
+		Handler: applyTokenMiddleware(applyDefaultMiddlewares(encodeHandler())),
 	}
 	handlers["apiDefault"] = RouteHandler{
 		Method:  http.MethodPost,
 		Path:    "/api/shorten",
-		Handler: applyMiddlewares(apiEncodeHandler()),
+		Handler: applyTokenMiddleware(applyDefaultMiddlewares(apiEncodeHandler())),
 	}
 	handlers["apiBatchDefault"] = RouteHandler{
 		Method:  http.MethodPost,
 		Path:    "/api/shorten/batch",
-		Handler: applyMiddlewares(apiBatchEncodeHandler()),
+		Handler: applyTokenMiddleware(applyDefaultMiddlewares(apiBatchEncodeHandler())),
 	}
 	handlers["short"] = RouteHandler{
 		Method:  http.MethodGet,
 		Path:    "/{short}",
-		Handler: applyMiddlewares(decodeHandler()),
+		Handler: applyDefaultMiddlewares(decodeHandler()),
 	}
 	handlers["dbPing"] = RouteHandler{
 		Method:  http.MethodGet,
 		Path:    "/ping",
-		Handler: applyMiddlewares(pingHandler()),
+		Handler: applyDefaultMiddlewares(pingHandler()),
+	}
+	handlers["apiUserLinks"] = RouteHandler{
+		Method:  http.MethodGet,
+		Path:    "/api/user/urls",
+		Handler: applyDefaultMiddlewares(applyAuthMiddleware(apiListUserLinksHandler())),
 	}
 
 	return handlers

@@ -1,6 +1,8 @@
 package config
 
 import (
+	"crypto/rand"
+	"encoding/hex"
 	"strings"
 
 	"github.com/MagicNetLab/ya-practicum-shortener/internal/config/env"
@@ -17,6 +19,8 @@ type ParameterConfig interface {
 	GetFileStoragePath() string
 	SetDBConnectString(params string) error
 	GetDBConnectString() string
+	SetJWTSecret(secret string) error
+	GetJWTSecret() string
 	IsValid() bool
 }
 
@@ -28,6 +32,7 @@ type configParams struct {
 	shortPort       string
 	fileStoragePath string
 	dbConnectString string
+	JWTSecret       string
 }
 
 func (sp *configParams) SetFileStoragePath(path string) error {
@@ -82,6 +87,15 @@ func (sp *configParams) GetDBConnectString() string {
 	return sp.dbConnectString
 }
 
+func (sp *configParams) SetJWTSecret(secret string) error {
+	sp.JWTSecret = secret
+	return nil
+}
+
+func (sp *configParams) GetJWTSecret() string {
+	return sp.JWTSecret
+}
+
 var servParams configParams
 
 func GetParams() ParameterConfig {
@@ -89,10 +103,11 @@ func GetParams() ParameterConfig {
 		return &servParams
 	}
 
-	// todo default values
+	// костыль для тестов. без этих значений приложение в принципе не должно запускаться
 	_ = servParams.SetDefaultHost("localhost", "8080")
 	_ = servParams.SetShortHost("localhost", "8080")
 	_ = servParams.SetFileStoragePath("/tmp/short-url-db.json")
+	_ = servParams.SetJWTSecret(getRandomSecret())
 
 	envConf, err := env.Parse()
 	if err == nil {
@@ -131,11 +146,21 @@ func GetParams() ParameterConfig {
 		}
 
 		if envConf.HasDBConnectString() {
-			dbConnectPatams, dbParamsErr := envConf.GetDBConnectString()
+			dbConnectParams, dbParamsErr := envConf.GetDBConnectString()
 			if dbParamsErr == nil {
-				err = servParams.SetDBConnectString(dbConnectPatams)
+				err = servParams.SetDBConnectString(dbConnectParams)
 				if err != nil {
 					logger.Log.Errorf("Fail set db connect params from env: %s", err)
+				}
+			}
+		}
+
+		if envConf.HasJWTSecret() {
+			jwtSecret, jwtSecretErr := envConf.GetJWTSecret()
+			if jwtSecretErr == nil {
+				err = servParams.SetJWTSecret(jwtSecret)
+				if err != nil {
+					logger.Log.Errorf("Fail set jwttoken secret from env: %s", err)
 				}
 			}
 		}
@@ -186,4 +211,14 @@ func GetParams() ParameterConfig {
 	}
 
 	return &servParams
+}
+
+func getRandomSecret() string {
+	b := make([]byte, 32)
+	_, err := rand.Read(b)
+	if err != nil {
+		return ""
+	}
+
+	return hex.EncodeToString(b)
 }

@@ -4,6 +4,7 @@ import (
 	"net/http"
 
 	"github.com/MagicNetLab/ya-practicum-shortener/internal/service/compression"
+	"github.com/MagicNetLab/ya-practicum-shortener/internal/service/jwttoken"
 	"github.com/MagicNetLab/ya-practicum-shortener/internal/service/logger"
 )
 
@@ -14,9 +15,17 @@ var middlewares = middlewareList{
 	logger.Middleware,
 }
 
-func applyMiddlewares(h http.HandlerFunc) http.HandlerFunc {
+func applyDefaultMiddlewares(h http.HandlerFunc) http.HandlerFunc {
 	for _, m := range middlewares {
 		h = m(h)
 	}
 	return h
+}
+
+func applyAuthMiddleware(h http.HandlerFunc) http.HandlerFunc {
+	return jwttoken.CheckAuthMiddleware(h)
+}
+
+func applyTokenMiddleware(h http.HandlerFunc) http.HandlerFunc {
+	return jwttoken.TokenMiddleware(h)
 }

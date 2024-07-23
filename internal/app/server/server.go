@@ -48,6 +48,11 @@ func getListeners(configurator configurator) listeners {
 		method:  handlers["dbPing"].Method,
 		handler: handlers["dbPing"].Handler,
 	}
+	userLinksRoute := route{
+		path:    handlers["apiUserLinks"].Path,
+		method:  handlers["apiUserLinks"].Method,
+		handler: handlers["apiUserLinks"].Handler,
+	}
 
 	l := make(listeners)
 	l.Append(configurator.GetDefaultHost(), defaultRoute)
@@ -55,6 +60,7 @@ func getListeners(configurator configurator) listeners {
 	l.Append(configurator.GetShortHost(), shortRoute)
 	l.Append(configurator.GetDefaultHost(), pingRoute)
 	l.Append(configurator.GetDefaultHost(), apiBatchDefaultRoute)
+	l.Append(configurator.GetDefaultHost(), userLinksRoute)
 
 	return l
 }

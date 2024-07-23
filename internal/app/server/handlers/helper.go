@@ -1,39 +1,75 @@
 package handlers
 
 import (
+	"errors"
+	"fmt"
+	"net/http"
+
 	"github.com/MagicNetLab/ya-practicum-shortener/internal/app/shortgen"
 	"github.com/MagicNetLab/ya-practicum-shortener/internal/app/storage"
+	"github.com/MagicNetLab/ya-practicum-shortener/internal/app/storage/postgres"
+	"github.com/MagicNetLab/ya-practicum-shortener/internal/config"
+	"github.com/MagicNetLab/ya-practicum-shortener/internal/service/jwttoken"
 	"github.com/MagicNetLab/ya-practicum-shortener/internal/service/logger"
+	"github.com/golang-jwt/jwt/v4"
 )
 
-func generateShortLink(url string) (string, error) {
-	short := shortgen.GetShortLink(7)
+func getShortLink(url string, userID int) (string, int) {
 	store, err := storage.GetStore()
 	if err != nil {
 		logger.Log.Errorf("Error init storage: %v", err)
-		return "", err
+		return "", http.StatusInternalServerError
 	}
 
-	err = store.PutLink(url, short)
+	short := shortgen.GetShortLink(7)
+	status := http.StatusCreated
+	err = store.PutLink(url, short, userID)
 	if err != nil {
-		return "", err
+		status = http.StatusInternalServerError
+		logger.Log.Errorf("Error putting short link: %v", err)
+		if errors.Is(err, postgres.ErrLinkUniqueConflict) {
+			short, err = store.GetShort(url)
+			if err == nil {
+				status = http.StatusConflict
+			}
+		}
 	}
 
-	return short, nil
+	return short, status
 }
 
-func getShortLink(url string) (string, error) {
-	store, err := storage.GetStore()
+func getUserID(tokenString string) (int, error) {
+	claims := &jwttoken.Claims{}
+	token, err := jwt.ParseWithClaims(tokenString, claims,
+		func(t *jwt.Token) (interface{}, error) {
+			if _, ok := t.Method.(*jwt.SigningMethodHMAC); !ok {
+				return nil, fmt.Errorf("unexpected signing method: %v", t.Header["alg"])
+			}
+			appConfig := config.GetParams()
+			return []byte(appConfig.GetJWTSecret()), nil
+		})
 	if err != nil {
-		logger.Log.Errorf("Error init storage: %v", err)
-		return "", err
+		return 0, errors.New("failed get user_id: invalid token")
 	}
 
-	short, err := store.GetShort(url)
-	if err != nil {
-		logger.Log.Errorf("Error get short link: %v", err)
-		return "", err
+	if !token.Valid {
+		fmt.Println("Token is not valid")
+		return 0, errors.New("failed get user_id: invalid token")
 	}
 
-	return short, nil
+	return claims.UserID, nil
+}
+
+func parseCookie(r *http.Request) (int, error) {
+	cookie, err := r.Cookie("token")
+	if err != nil || cookie.Value == "" {
+		return 0, fmt.Errorf("failed parse cookie %v", err)
+	}
+
+	userID, err := getUserID(cookie.Value)
+	if err != nil {
+		return 0, fmt.Errorf("failed get userID from cookie %v", err)
+	}
+
+	return userID, nil
 }

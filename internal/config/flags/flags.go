@@ -11,6 +11,7 @@ const (
 	shortHostKey    = "b"
 	fileStoragePath = "f"
 	dbConnectKey    = "d"
+	jwtSecret       = "j"
 )
 
 type CliConfigurator interface {
@@ -24,6 +25,8 @@ type CliConfigurator interface {
 	GetFileStoragePath() (string, error)
 	HasDBConnectString() bool
 	GetDBConnectString() (string, error)
+	HasJWTSecret() bool
+	GetJWTSecret() (string, error)
 }
 
 type cliConf struct {
@@ -33,6 +36,7 @@ type cliConf struct {
 	shortPort       string
 	fileStoragePath string
 	dbConnectString string
+	jwtSecret       string
 }
 
 func (cc *cliConf) HasDefaultHost() bool {
@@ -99,6 +103,17 @@ func (cc *cliConf) GetDBConnectString() (string, error) {
 	return cc.dbConnectString, nil
 }
 
+func (cc *cliConf) HasJWTSecret() bool {
+	return cc.jwtSecret != ""
+}
+
+func (cc *cliConf) GetJWTSecret() (string, error) {
+	if cc.jwtSecret == "" {
+		return "", errors.New("jwttoken secret not set")
+	}
+	return cc.jwtSecret, nil
+}
+
 var conf = cliConf{}
 
 func Parse() CliConfigurator {
@@ -106,11 +121,13 @@ func Parse() CliConfigurator {
 	var shortHost = ""
 	var fileStorage = ""
 	var dbConnectString = ""
+	var jwtSecretKey = ""
 
 	flag.StringVar(&defaultHost, defaultHostKey, "", "Base address")
 	flag.StringVar(&shortHost, shortHostKey, "", "short links host")
 	flag.StringVar(&fileStorage, fileStoragePath, "", "file storage path")
 	flag.StringVar(&dbConnectString, dbConnectKey, "", "database connect param")
+	flag.StringVar(&jwtSecretKey, jwtSecret, "", "jwttoken secret")
 	flag.Parse()
 
 	dh := strings.Split(defaultHost, ":")
@@ -126,8 +143,8 @@ func Parse() CliConfigurator {
 	}
 
 	conf.fileStoragePath = fileStorage
-
 	conf.dbConnectString = dbConnectString
+	conf.jwtSecret = jwtSecretKey
 
 	return &conf
 }

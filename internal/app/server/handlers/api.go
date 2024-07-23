@@ -2,12 +2,11 @@ package handlers
 
 import (
 	"encoding/json"
-	"errors"
+	"fmt"
 	"net/http"
 
 	"github.com/MagicNetLab/ya-practicum-shortener/internal/app/shortgen"
 	"github.com/MagicNetLab/ya-practicum-shortener/internal/app/storage"
-	"github.com/MagicNetLab/ya-practicum-shortener/internal/app/storage/postgres"
 	"github.com/MagicNetLab/ya-practicum-shortener/internal/config"
 	"github.com/MagicNetLab/ya-practicum-shortener/internal/service/logger"
 )
@@ -23,49 +22,27 @@ func apiEncodeHandler() http.HandlerFunc {
 			return
 		}
 
+		userID, err := parseCookie(r)
+		if err != nil {
+			logger.Log.Errorf("failed get user_id from cookie: %v", err)
+			http.Error(w, "incorrect user token", http.StatusBadRequest)
+			return
+		}
+
 		if err := json.NewDecoder(r.Body).Decode(&shortRequest); err != nil {
 			http.Error(w, "Missing link", http.StatusBadRequest)
 			return
 		}
 
-		// todo избавиться от дублирования c web.go
 		c := config.GetParams()
-		short, err := generateShortLink(shortRequest.URL)
-		if err == nil {
-			redirectLink := "http://" + c.GetShortHost() + "/" + short
-			apiResult := APIResponse{
-				Result: redirectLink,
-			}
-
-			w.Header().Set("content-type", "application/json")
-			w.WriteHeader(http.StatusCreated)
-			if err := json.NewEncoder(w).Encode(apiResult); err != nil {
-				http.Error(w, err.Error(), http.StatusInternalServerError)
-			}
-			return
+		apiResult := APIResponse{Result: ""}
+		short, status := getShortLink(shortRequest.URL, userID)
+		apiResult.Result = "http://" + c.GetShortHost() + "/" + short
+		w.Header().Set("content-type", "application/json")
+		w.WriteHeader(status)
+		if err := json.NewEncoder(w).Encode(apiResult); err != nil {
+			http.Error(w, err.Error(), http.StatusInternalServerError)
 		}
-
-		if errors.Is(err, postgres.ErrLinkUniqueConflict) {
-			short, err = getShortLink(shortRequest.URL)
-			if err != nil {
-				http.Error(w, "Unique conflict", http.StatusInternalServerError)
-				return
-			}
-
-			redirectLink := "http://" + c.GetShortHost() + "/" + short
-			apiResult := APIResponse{
-				Result: redirectLink,
-			}
-
-			w.Header().Set("content-type", "application/json")
-			w.WriteHeader(http.StatusConflict)
-			if err := json.NewEncoder(w).Encode(apiResult); err != nil {
-				http.Error(w, err.Error(), http.StatusInternalServerError)
-			}
-			return
-		}
-
-		http.Error(w, "Internal Server Error", http.StatusInternalServerError)
 	}
 }
 
@@ -75,6 +52,13 @@ func apiBatchEncodeHandler() http.HandlerFunc {
 			w.Header().Set("content-type", "text/plain")
 			w.WriteHeader(http.StatusForbidden)
 			w.Write([]byte("Method not allowed"))
+			return
+		}
+
+		userID, err := parseCookie(r)
+		if err != nil {
+			logger.Log.Errorf("failed get user_id from cookie: %v", err)
+			http.Error(w, "incorrect user token", http.StatusBadRequest)
 			return
 		}
 
@@ -105,7 +89,7 @@ func apiBatchEncodeHandler() http.HandlerFunc {
 			response = append(response, row)
 		}
 
-		err = store.PutBatchLinksArray(storeData)
+		err = store.PutBatchLinksArray(storeData, userID)
 		if err != nil {
 			logger.Log.Errorf("Failed to put batch links: %v", err)
 			http.Error(w, "Internal Server Error", http.StatusInternalServerError)
@@ -114,6 +98,62 @@ func apiBatchEncodeHandler() http.HandlerFunc {
 		w.Header().Set("content-type", "application/json")
 		w.WriteHeader(http.StatusCreated)
 		if err := json.NewEncoder(w).Encode(response); err != nil {
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+		}
+	}
+}
+
+func apiListUserLinksHandler() http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		if r.Method != http.MethodGet {
+			http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
+			return
+		}
+
+		userID, err := parseCookie(r)
+		if err != nil {
+			logger.Log.Errorf("failed get user_id from cookie: %v", err)
+			http.Error(w, "unauthorized", http.StatusUnauthorized)
+			return
+		}
+
+		store, err := storage.GetStore()
+		if err != nil {
+			logger.Log.Errorf("Failed to get store: %v", err)
+			http.Error(w, "Internal Server Error", http.StatusInternalServerError)
+			return
+		}
+
+		userLinksResponse := UserLinksResponse{}
+
+		res, err := store.GetUserLinks(userID)
+		if err != nil {
+			logger.Log.Errorf("Failed to get user links: %v", err)
+			http.Error(w, "Internal Server Error", http.StatusInternalServerError)
+			return
+		}
+
+		if len(res) == 0 {
+			w.Header().Set("content-type", "application/json")
+			w.WriteHeader(http.StatusNoContent)
+			if err := json.NewEncoder(w).Encode(userLinksResponse); err != nil {
+				http.Error(w, err.Error(), http.StatusInternalServerError)
+			}
+			return
+		}
+
+		c := config.GetParams()
+		for k, v := range res {
+			row := UserLinkEntity{
+				ShortURL:    fmt.Sprintf("%s/%s", c.GetShortHost(), k),
+				OriginalURL: v,
+			}
+			userLinksResponse = append(userLinksResponse, row)
+		}
+
+		w.Header().Set("content-type", "application/json")
+		w.WriteHeader(http.StatusOK)
+		if err := json.NewEncoder(w).Encode(userLinksResponse); err != nil {
 			http.Error(w, err.Error(), http.StatusInternalServerError)
 		}
 	}

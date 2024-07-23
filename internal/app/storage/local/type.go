@@ -1,13 +1,14 @@
 package local
 
 type StoreEntity struct {
-	Short string `json:"short"`
-	Link  string `json:"link"`
+	Short  string `json:"short"`
+	Link   string `json:"link"`
+	UserID int    `json:"user_id"`
 }
 
 type CacheStoreInterface interface {
 	Load() ([]StoreEntity, error)
-	Save(short string, link string) error
+	Save(link linkEntity) error
 	IsInitialized() bool
 	SetPath(path string)
 	SetInitialized(isInitialized bool)

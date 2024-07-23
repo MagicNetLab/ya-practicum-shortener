@@ -1,7 +1,6 @@
 package handlers
 
 import (
-	"errors"
 	"fmt"
 	"io"
 	"net/http"
@@ -16,79 +15,48 @@ import (
 func encodeHandler() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		if r.Method != http.MethodPost {
-			w.Header().Set("content-type", "text/plain")
-			w.WriteHeader(http.StatusForbidden)
-			w.Write([]byte("Method not allowed"))
+			http.Error(w, http.StatusText(http.StatusMethodNotAllowed), http.StatusMethodNotAllowed)
+			return
+		}
 
+		userID, err := parseCookie(r)
+		if err != nil {
+			logger.Log.Errorf("failed get user from token: %v", err)
+			http.Error(w, "incorrect user token", http.StatusBadRequest)
 			return
 		}
 
 		link, err := io.ReadAll(r.Body)
 		if err != nil {
+			logger.Log.Errorf("Error reading body: %v", err)
 			http.Error(w, "Internal Server Error", http.StatusInternalServerError)
 			return
 		}
 
 		if string(link) == "" {
-			w.Header().Set("content-type", "text/plain")
-			w.WriteHeader(http.StatusBadRequest)
-			_, err := w.Write([]byte("Missing link"))
-			if err != nil {
-				logger.Log.Errorf("Failed to write response %v", err)
-			}
-
+			http.Error(w, "Missing link", http.StatusBadRequest)
 			return
 		}
 
 		c := config.GetParams()
-		// todo избавиться от дублирования с api.go
-		short, err := generateShortLink(string(link))
-		if err == nil {
-			w.Header().Set("content-type", "text/plain")
-			w.WriteHeader(http.StatusCreated)
-			_, err = w.Write([]byte(fmt.Sprintf("http://%s/%s", c.GetShortHost(), short)))
-			if err != nil {
-				logger.Log.Errorf("Failed to write response %v", err)
-			}
-			return
+		short, status := getShortLink(string(link), userID)
+		w.Header().Set("content-type", "text/plain")
+		w.WriteHeader(status)
+		_, err = w.Write([]byte(fmt.Sprintf("http://%s/%s", c.GetShortHost(), short)))
+		if err != nil {
+			logger.Log.Errorf("Failed to write response %v", err)
 		}
-
-		if errors.Is(err, postgres.ErrLinkUniqueConflict) {
-			short, err = getShortLink(string(link))
-			if err != nil {
-				logger.Log.Errorf("Failed to get short link %v", err)
-				http.Error(w, "Internal Server Error", http.StatusInternalServerError)
-				return
-			}
-
-			w.Header().Set("content-type", "text/plain")
-			w.WriteHeader(http.StatusConflict)
-			_, err = w.Write([]byte(fmt.Sprintf("http://%s/%s", c.GetShortHost(), short)))
-			if err != nil {
-				logger.Log.Errorf("Failed to write response %v", err)
-			}
-			return
-		}
-
-		http.Error(w, "Internal Server Error", http.StatusInternalServerError)
 	}
 }
 
 func decodeHandler() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		if r.Method != http.MethodGet {
-			w.Header().Set("content-type", "text/plain")
-			w.WriteHeader(http.StatusForbidden)
-			_, err := w.Write([]byte("Method not allowed"))
-			if err != nil {
-				logger.Log.Errorf("Failed to write response %v", err)
-			}
-
+			http.Error(w, http.StatusText(http.StatusMethodNotAllowed), http.StatusMethodNotAllowed)
 			return
 		}
 
 		short := chi.URLParam(r, "short")
-
 		store, err := storage.GetStore()
 		if err != nil {
 			logger.Log.Errorf("Failed to get store %v", err)
@@ -104,7 +72,7 @@ func decodeHandler() http.HandlerFunc {
 		if hasShort {
 			link, err := store.GetLink(short)
 			if err != nil {
-				http.NotFound(w, r)
+				http.Error(w, http.StatusText(http.StatusNotFound), http.StatusNotFound)
 				return
 			}
 
@@ -113,7 +81,7 @@ func decodeHandler() http.HandlerFunc {
 			return
 		}
 
-		http.NotFound(w, r)
+		http.Error(w, http.StatusText(http.StatusNotFound), http.StatusNotFound)
 	}
 }
 
