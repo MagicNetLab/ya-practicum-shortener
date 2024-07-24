@@ -6,7 +6,10 @@ import (
 	"net/http/httptest"
 	"strings"
 	"testing"
+	"time"
 
+	"github.com/MagicNetLab/ya-practicum-shortener/internal/config"
+	"github.com/MagicNetLab/ya-practicum-shortener/internal/service/jwttoken"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
@@ -32,9 +35,9 @@ func Test_encodeLinkHeader(t *testing.T) {
 			method: http.MethodGet,
 			body:   "",
 			want: want{
-				contentType: "text/plain",
-				statusCode:  http.StatusForbidden,
-				body:        "Method not allowed",
+				contentType: "text/plain; charset=utf-8",
+				statusCode:  http.StatusMethodNotAllowed,
+				body:        "Method Not Allowed",
 			},
 			request: "/",
 		},
@@ -43,7 +46,7 @@ func Test_encodeLinkHeader(t *testing.T) {
 			method: http.MethodPost,
 			body:   "",
 			want: want{
-				contentType: "text/plain",
+				contentType: "text/plain; charset=utf-8",
 				statusCode:  http.StatusBadRequest,
 				body:        "Missing link",
 			},
@@ -67,6 +70,11 @@ func Test_encodeLinkHeader(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			request := httptest.NewRequest(tt.method, tt.request, strings.NewReader(tt.body))
+			c := config.GetParams()
+			token, _ := jwttoken.GenerateToken(3, c.GetJWTSecret())
+			newCookie := http.Cookie{Name: "token", Value: token, Path: "/", Expires: time.Now().Add(5 * time.Minute)}
+			request.AddCookie(&newCookie)
+
 			w := httptest.NewRecorder()
 			h := encodeHandler()
 			h(w, request)
@@ -102,7 +110,7 @@ func Test_decodeLinkHeader(t *testing.T) {
 			name:   "Test wrong method",
 			method: http.MethodPost,
 			want: want{
-				statusCode: http.StatusForbidden,
+				statusCode: http.StatusMethodNotAllowed,
 			},
 			request: "/sl/jsdhkahs",
 		},
@@ -119,6 +127,10 @@ func Test_decodeLinkHeader(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			request := httptest.NewRequest(tt.method, tt.request, nil)
+			c := config.GetParams()
+			token, _ := jwttoken.GenerateToken(3, c.GetJWTSecret())
+			newCookie := http.Cookie{Name: "token", Value: token, Path: "/", Expires: time.Now().Add(5 * time.Minute)}
+			request.AddCookie(&newCookie)
 			w := httptest.NewRecorder()
 			h := decodeHandler()
 			h(w, request)
