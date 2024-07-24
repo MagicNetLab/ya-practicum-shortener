@@ -145,7 +145,7 @@ func apiListUserLinksHandler() http.HandlerFunc {
 		c := config.GetParams()
 		for k, v := range res {
 			row := UserLinkEntity{
-				ShortURL:    fmt.Sprintf("%s/%s", c.GetShortHost(), k),
+				ShortURL:    fmt.Sprintf("http://%s/%s", c.GetShortHost(), k),
 				OriginalURL: v,
 			}
 			userLinksResponse = append(userLinksResponse, row)
