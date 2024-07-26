@@ -33,6 +33,8 @@ func (l listeners) Append(host string, route route) {
 	switch route.method {
 	case http.MethodPost:
 		r.Post(route.path, route.handler)
+	case http.MethodDelete:
+		r.Delete(route.path, route.handler)
 	default:
 		r.Get(route.path, route.handler)
 	}

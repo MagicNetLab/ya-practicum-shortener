@@ -2,7 +2,9 @@ package handlers
 
 import (
 	"encoding/json"
+	"errors"
 	"fmt"
+	"github.com/MagicNetLab/ya-practicum-shortener/internal/app/storage/postgres"
 	"net/http"
 
 	"github.com/MagicNetLab/ya-practicum-shortener/internal/app/shortgen"
@@ -13,12 +15,8 @@ import (
 
 func apiEncodeHandler() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		var shortRequest APIRequest
-
 		if r.Method != http.MethodPost {
-			w.Header().Set("content-type", "text/plain")
-			w.WriteHeader(http.StatusForbidden)
-			w.Write([]byte("Method not allowed"))
+			http.Error(w, "Method not allowed", http.StatusForbidden)
 			return
 		}
 
@@ -29,6 +27,7 @@ func apiEncodeHandler() http.HandlerFunc {
 			return
 		}
 
+		var shortRequest APIRequest
 		if err := json.NewDecoder(r.Body).Decode(&shortRequest); err != nil {
 			http.Error(w, "Missing link", http.StatusBadRequest)
 			return
@@ -49,9 +48,7 @@ func apiEncodeHandler() http.HandlerFunc {
 func apiBatchEncodeHandler() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		if r.Method != http.MethodPost {
-			w.Header().Set("content-type", "text/plain")
-			w.WriteHeader(http.StatusForbidden)
-			w.Write([]byte("Method not allowed"))
+			http.Error(w, "Method not allowed", http.StatusForbidden)
 			return
 		}
 
@@ -73,17 +70,17 @@ func apiBatchEncodeHandler() http.HandlerFunc {
 		if err != nil {
 			logger.Log.Errorf("Failed to get store: %v", err)
 			http.Error(w, "Internal Server Error", http.StatusInternalServerError)
+			return
 		}
 
 		var response APIBatchResponse
 		storeData := make(map[string]string)
 		c := config.GetParams()
-
 		for _, v := range batchRequest {
 			short := shortgen.GetShortLink(7)
 			row := APIBatchResponseEntity{
 				CorrelationID: v.CorrelationID,
-				ShortURL:      "http://" + c.GetShortHost() + "/" + short,
+				ShortURL:      fmt.Sprintf("http://%s/%s", c.GetShortHost(), short),
 			}
 			storeData[short] = v.OriginalURL
 			response = append(response, row)
@@ -91,8 +88,14 @@ func apiBatchEncodeHandler() http.HandlerFunc {
 
 		err = store.PutBatchLinksArray(storeData, userID)
 		if err != nil {
+			if errors.Is(err, postgres.ErrLinkUniqueConflict) {
+				http.Error(w, "Conflict: one or more links are not unique", http.StatusConflict)
+				return
+			}
+
 			logger.Log.Errorf("Failed to put batch links: %v", err)
 			http.Error(w, "Internal Server Error", http.StatusInternalServerError)
+			return
 		}
 
 		w.Header().Set("content-type", "application/json")
@@ -124,8 +127,6 @@ func apiListUserLinksHandler() http.HandlerFunc {
 			return
 		}
 
-		userLinksResponse := UserLinksResponse{}
-
 		res, err := store.GetUserLinks(userID)
 		if err != nil {
 			logger.Log.Errorf("Failed to get user links: %v", err)
@@ -133,6 +134,7 @@ func apiListUserLinksHandler() http.HandlerFunc {
 			return
 		}
 
+		userLinksResponse := UserLinksResponse{}
 		if len(res) == 0 {
 			w.Header().Set("content-type", "application/json")
 			w.WriteHeader(http.StatusNoContent)
@@ -154,6 +156,37 @@ func apiListUserLinksHandler() http.HandlerFunc {
 		w.Header().Set("content-type", "application/json")
 		w.WriteHeader(http.StatusOK)
 		if err := json.NewEncoder(w).Encode(userLinksResponse); err != nil {
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+		}
+	}
+}
+
+func deleteUserLinksHandler() http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		if r.Method != http.MethodDelete {
+			http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
+			return
+		}
+
+		userID, err := parseCookie(r)
+		if err != nil {
+			logger.Log.Errorf("failed get user_id from cookie: %v", err)
+			http.Error(w, "incorrect user token", http.StatusBadRequest)
+			return
+		}
+
+		var deleteRequest APIDeleteRequest
+		if err := json.NewDecoder(r.Body).Decode(&deleteRequest); err != nil {
+			logger.Log.Errorf("Failed to decode delete request: %v", err)
+			http.Error(w, "Incorrect request data", http.StatusBadRequest)
+			return
+		}
+
+		go batchDeleteLinks(deleteRequest, userID)
+
+		w.Header().Set("content-type", "application/json")
+		w.WriteHeader(http.StatusAccepted)
+		if err := json.NewEncoder(w).Encode("ok"); err != nil {
 			http.Error(w, err.Error(), http.StatusInternalServerError)
 		}
 	}

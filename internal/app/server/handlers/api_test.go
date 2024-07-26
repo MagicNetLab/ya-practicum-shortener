@@ -33,7 +33,7 @@ func Test_apiEncodeHandler(t *testing.T) {
 			method: http.MethodGet,
 			body:   "",
 			want: want{
-				contentType: "text/plain",
+				contentType: "text/plain; charset=utf-8",
 				statusCode:  http.StatusForbidden,
 				body:        "Method not allowed",
 			},

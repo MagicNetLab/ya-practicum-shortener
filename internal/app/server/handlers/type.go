@@ -28,3 +28,5 @@ type UserLinkEntity struct {
 }
 
 type UserLinksResponse []UserLinkEntity
+
+type APIDeleteRequest []string

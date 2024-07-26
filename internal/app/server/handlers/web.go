@@ -63,25 +63,18 @@ func decodeHandler() http.HandlerFunc {
 			http.Error(w, "Internal Server Error", http.StatusInternalServerError)
 		}
 
-		hasShort, err := store.HasShort(short)
+		link, isDeleted, err := store.GetLink(short)
 		if err != nil {
-			logger.Log.Errorf("Failed to check short %v", err)
-			http.Error(w, "Internal Server Error", http.StatusInternalServerError)
-		}
-
-		if hasShort {
-			link, err := store.GetLink(short)
-			if err != nil {
-				http.Error(w, http.StatusText(http.StatusNotFound), http.StatusNotFound)
-				return
-			}
-
-			http.Redirect(w, r, link, http.StatusTemporaryRedirect)
-
+			http.Error(w, http.StatusText(http.StatusNotFound), http.StatusNotFound)
 			return
 		}
 
-		http.Error(w, http.StatusText(http.StatusNotFound), http.StatusNotFound)
+		if isDeleted {
+			http.Error(w, http.StatusText(http.StatusGone), http.StatusGone)
+			return
+		}
+
+		http.Redirect(w, r, link, http.StatusTemporaryRedirect)
 	}
 }
 

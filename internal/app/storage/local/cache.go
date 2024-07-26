@@ -46,9 +46,10 @@ func (cs *cacheStore) Save(link linkEntity) error {
 
 		writer := bufio.NewWriter(file)
 		rowData := StoreEntity{
-			Short:  link.shortLink,
-			Link:   link.originalURL,
-			UserID: link.userID,
+			Short:     link.shortLink,
+			Link:      link.originalURL,
+			UserID:    link.userID,
+			IsDeleted: link.isDeleted,
 		}
 		rowString, err := json.Marshal(rowData)
 		if err != nil {

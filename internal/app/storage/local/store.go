@@ -12,6 +12,7 @@ type linkEntity struct {
 	userID      int
 	shortLink   string
 	originalURL string
+	isDeleted   bool
 }
 
 type store struct {
@@ -25,7 +26,7 @@ func (s *store) PutLink(link string, short string, userID int) error {
 		return errors.New("incorrect params to store link")
 	}
 
-	l := linkEntity{shortLink: short, originalURL: link, userID: userID}
+	l := linkEntity{shortLink: short, originalURL: link, userID: userID, isDeleted: false}
 	s.store[short] = l
 
 	cacheStore := GetCacheStore()
@@ -61,13 +62,13 @@ func (s *store) PutBatchLinksArray(StoreBatchLinksArray map[string]string, userI
 	return nil
 }
 
-func (s *store) GetLink(short string) (string, error) {
+func (s *store) GetLink(short string) (string, bool, error) {
 	link, ok := s.store[short]
 	if ok {
-		return link.originalURL, nil
+		return link.originalURL, link.isDeleted, nil
 	}
 
-	return "", fmt.Errorf("short %s not found", short)
+	return "", false, fmt.Errorf("short %s not found", short)
 }
 
 func (s *store) HasShort(short string) (bool, error) {
@@ -93,6 +94,19 @@ func (s *store) GetUserLinks(userID int) (map[string]string, error) {
 		}
 	}
 	return result, nil
+}
+
+func (s *store) DeleteBatchLinksArray(shorts []string, userID int) error {
+	// todo подумать как малой кровью поменять данные в кэш файле
+	for _, short := range shorts {
+		data, ok := s.store[short]
+		if ok && data.userID == userID {
+			data.isDeleted = true
+			s.store[short] = data
+		}
+	}
+
+	return nil
 }
 
 func (s *store) Init() error {

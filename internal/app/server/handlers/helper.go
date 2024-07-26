@@ -4,6 +4,8 @@ import (
 	"errors"
 	"fmt"
 	"net/http"
+	"sync"
+	"time"
 
 	"github.com/MagicNetLab/ya-practicum-shortener/internal/app/shortgen"
 	"github.com/MagicNetLab/ya-practicum-shortener/internal/app/storage"
@@ -14,28 +16,28 @@ import (
 	"github.com/golang-jwt/jwt/v4"
 )
 
-func getShortLink(url string, userID int) (string, int) {
+func getShortLink(url string, userID int) (short string, httpResponseStatus int) {
 	store, err := storage.GetStore()
 	if err != nil {
 		logger.Log.Errorf("Error init storage: %v", err)
 		return "", http.StatusInternalServerError
 	}
 
-	short := shortgen.GetShortLink(7)
-	status := http.StatusCreated
+	short = shortgen.GetShortLink(7)
+	httpResponseStatus = http.StatusCreated
 	err = store.PutLink(url, short, userID)
 	if err != nil {
-		status = http.StatusInternalServerError
+		httpResponseStatus = http.StatusInternalServerError
 		logger.Log.Errorf("Error putting short link: %v", err)
 		if errors.Is(err, postgres.ErrLinkUniqueConflict) {
 			short, err = store.GetShort(url)
 			if err == nil {
-				status = http.StatusConflict
+				httpResponseStatus = http.StatusConflict
 			}
 		}
 	}
 
-	return short, status
+	return short, httpResponseStatus
 }
 
 func getUserID(tokenString string) (int, error) {
@@ -72,4 +74,69 @@ func parseCookie(r *http.Request) (int, error) {
 	}
 
 	return userID, nil
+}
+
+func batchDeleteLinks(shorts []string, userID int) {
+	doneCh := make(chan struct{})
+	defer close(doneCh)
+
+	inputCh := make(chan string, 5)
+	go func() {
+		for _, short := range shorts {
+			select {
+			case <-doneCh:
+				return
+			case inputCh <- short:
+			}
+		}
+		close(inputCh)
+	}()
+
+	numWorkers := 2
+	wg := sync.WaitGroup{}
+	wg.Add(numWorkers)
+	for i := 0; i < numWorkers; i++ {
+		go func(dataChan <-chan string) {
+			defer wg.Done()
+
+			var batch []string
+			for {
+				select {
+				case short, ok := <-dataChan:
+					if !ok {
+						deleteLinks(batch, userID)
+						return
+					}
+					batch = append(batch, short)
+					if len(batch) == 5 {
+						deleteLinks(batch, userID)
+						batch = nil
+					}
+				case <-doneCh:
+					return
+				default:
+					time.Sleep(100 * time.Millisecond)
+				}
+			}
+		}(inputCh)
+	}
+
+	wg.Wait()
+}
+
+func deleteLinks(shorts []string, userID int) {
+	if len(shorts) == 0 {
+		return
+	}
+
+	store, err := storage.GetStore()
+	if err != nil {
+		logger.Log.Errorf("Error init storage: %v", err)
+		return
+	}
+
+	err = store.DeleteBatchLinksArray(shorts, userID)
+	if err != nil {
+		logger.Log.Errorf("Error deleting short links: %v", err)
+	}
 }
