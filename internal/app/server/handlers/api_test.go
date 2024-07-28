@@ -6,7 +6,10 @@ import (
 	"net/http/httptest"
 	"strings"
 	"testing"
+	"time"
 
+	"github.com/MagicNetLab/ya-practicum-shortener/internal/config"
+	"github.com/MagicNetLab/ya-practicum-shortener/internal/service/jwttoken"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
@@ -30,7 +33,7 @@ func Test_apiEncodeHandler(t *testing.T) {
 			method: http.MethodGet,
 			body:   "",
 			want: want{
-				contentType: "text/plain",
+				contentType: "text/plain; charset=utf-8",
 				statusCode:  http.StatusForbidden,
 				body:        "Method not allowed",
 			},
@@ -62,9 +65,14 @@ func Test_apiEncodeHandler(t *testing.T) {
 		// todo test unique link
 	}
 
+	c := config.GetParams()
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			request := httptest.NewRequest(tt.method, tt.request, strings.NewReader(tt.body))
+			token, _ := jwttoken.GenerateToken(3, c.GetJWTSecret())
+			newCookie := http.Cookie{Name: "token", Value: token, Path: "/", Expires: time.Now().Add(5 * time.Minute)}
+			request.AddCookie(&newCookie)
+
 			w := httptest.NewRecorder()
 			h := apiEncodeHandler()
 			h(w, request)

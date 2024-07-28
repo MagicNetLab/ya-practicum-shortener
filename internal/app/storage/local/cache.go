@@ -35,7 +35,7 @@ func (cs *cacheStore) Load() ([]StoreEntity, error) {
 	return data, nil
 }
 
-func (cs *cacheStore) Save(short string, link string) error {
+func (cs *cacheStore) Save(link linkEntity) error {
 	if storeFile.isInitialized {
 		file, err := os.OpenFile(storeFile.path, os.O_APPEND|os.O_WRONLY|os.O_CREATE, 0666)
 		if err != nil {
@@ -46,8 +46,10 @@ func (cs *cacheStore) Save(short string, link string) error {
 
 		writer := bufio.NewWriter(file)
 		rowData := StoreEntity{
-			Short: short,
-			Link:  link,
+			Short:     link.shortLink,
+			Link:      link.originalURL,
+			UserID:    link.userID,
+			IsDeleted: link.isDeleted,
 		}
 		rowString, err := json.Marshal(rowData)
 		if err != nil {

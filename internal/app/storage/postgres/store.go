@@ -6,7 +6,9 @@ import (
 	"errors"
 	"fmt"
 	"github.com/jackc/pgerrcode"
+	"strconv"
 	"strings"
+	"time"
 
 	"github.com/MagicNetLab/ya-practicum-shortener/internal/config"
 	"github.com/MagicNetLab/ya-practicum-shortener/internal/service/logger"
@@ -18,10 +20,11 @@ import (
 )
 
 const (
-	insertLinkSQL  = "INSERT INTO links (short, link) VALUES ($1, $2)"
-	selectLinkSQL  = "SELECT link FROM links WHERE short = $1"
-	selectShortSQL = "SELECT short FROM links WHERE link = $1"
-	hasLinkSQL     = "SELECT count(*) FROM links WHERE short = $1"
+	insertLinkSQL   = "INSERT INTO links (short, link, user_id) VALUES ($1, $2, $3)"
+	selectLinkSQL   = "SELECT link, is_deleted FROM links WHERE short = $1"
+	selectShortSQL  = "SELECT short FROM links WHERE link = $1"
+	hasLinkSQL      = "SELECT count(*) FROM links WHERE short = $1"
+	selectUserLinks = "SELECT short, link FROM links WHERE user_id = $1"
 )
 
 type store struct {
@@ -69,22 +72,21 @@ func (s *store) Init() error {
 	return nil
 }
 
-func (s *store) PutLink(link string, short string) error {
-	// todo use context with timeout from handlers
-	ctx := context.Background()
+func (s *store) PutLink(link string, short string, userID int) error {
+	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
+	defer cancel()
+
 	conn, err := pgx.Connect(ctx, s.connectString)
 	if err != nil {
 		return errors.New("database connection error: " + err.Error())
 	}
 	defer conn.Close(ctx)
 
-	commandTag, err := conn.Exec(ctx, insertLinkSQL, short, link)
+	commandTag, err := conn.Exec(ctx, insertLinkSQL, short, link, userID)
 	if err != nil {
-		// todo use errors.Is
 		if strings.Contains(err.Error(), pgerrcode.UniqueViolation) {
 			return ErrLinkUniqueConflict
 		}
-
 		return err
 	}
 
@@ -95,10 +97,11 @@ func (s *store) PutLink(link string, short string) error {
 	return nil
 }
 
-func (s *store) PutBatchLinksArray(StoreBatchLicksArray map[string]string) error {
-	// todo use context with timeout from handlers
-	// todo use prepared statements??
-	ctx := context.Background()
+func (s *store) PutBatchLinksArray(StoreBatchLicksArray map[string]string, userID int) error {
+	// TODO use prepare statement
+	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
+	defer cancel()
+
 	conn, err := pgx.Connect(ctx, s.connectString)
 	if err != nil {
 		return errors.New("database connection error: " + err.Error())
@@ -117,8 +120,11 @@ func (s *store) PutBatchLinksArray(StoreBatchLicksArray map[string]string) error
 	}
 
 	for key, value := range StoreBatchLicksArray {
-		cTag, err := transaction.Exec(ctx, "batch-insert", key, value)
+		cTag, err := transaction.Exec(ctx, "batch-insert", key, value, userID)
 		if err != nil {
+			if strings.Contains(err.Error(), pgerrcode.UniqueViolation) {
+				return ErrLinkUniqueConflict
+			}
 			return err
 		}
 
@@ -132,27 +138,30 @@ func (s *store) PutBatchLinksArray(StoreBatchLicksArray map[string]string) error
 	return nil
 }
 
-func (s *store) GetLink(short string) (string, error) {
-	// todo use context with timeout from handlers
-	ctx := context.Background()
+func (s *store) GetLink(short string) (string, bool, error) {
+	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
+	defer cancel()
+
 	conn, err := pgx.Connect(ctx, s.connectString)
 	if err != nil {
-		return "", errors.New("database connection error: " + err.Error())
+		return "", false, errors.New("database connection error: " + err.Error())
 	}
 	defer conn.Close(ctx)
 
 	var link string
-	err = conn.QueryRow(ctx, selectLinkSQL, short).Scan(&link)
+	var isDeleted bool
+	err = conn.QueryRow(ctx, selectLinkSQL, short).Scan(&link, &isDeleted)
 	if err != nil {
-		return "", errors.New("database error: " + err.Error())
+		return "", isDeleted, errors.New("database error: " + err.Error())
 	}
 
-	return link, nil
+	return link, isDeleted, nil
 }
 
 func (s *store) HasShort(short string) (bool, error) {
-	// todo use context with timeout from handlers
-	ctx := context.Background()
+	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
+	defer cancel()
+
 	conn, err := pgx.Connect(ctx, s.connectString)
 	if err != nil {
 		return false, errors.New("database connection error: " + err.Error())
@@ -189,6 +198,71 @@ func (s *store) GetShort(link string) (string, error) {
 
 	return short, nil
 
+}
+
+func (s *store) GetUserLinks(userID int) (map[string]string, error) {
+	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	defer cancel()
+
+	conn, err := pgx.Connect(ctx, s.connectString)
+	if err != nil {
+		return nil, errors.New("database connection error: " + err.Error())
+	}
+	defer conn.Close(ctx)
+
+	res := make(map[string]string)
+
+	rows, err := conn.Query(ctx, selectUserLinks, userID)
+	if err != nil {
+		if errors.Is(err, pgx.ErrNoRows) {
+			return res, nil
+		}
+
+		return nil, errors.New("database error: " + err.Error())
+	}
+	defer rows.Close()
+
+	for rows.Next() {
+		var short, link string
+		if err := rows.Scan(&short, &link); err != nil {
+			rows.Close()
+			return nil, errors.New("database error: " + err.Error())
+		}
+		res[short] = link
+	}
+	rows.Close()
+
+	return res, nil
+}
+
+func (s *store) DeleteBatchLinksArray(shorts []string, userID int) error {
+	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	defer cancel()
+	conn, err := pgx.Connect(ctx, s.connectString)
+	if err != nil {
+		return errors.New("database connection error: " + err.Error())
+	}
+	defer conn.Close(ctx)
+
+	var paramrefs string
+	var ids []interface{}
+	ids = append(ids, userID)
+	for i, v := range shorts {
+		paramrefs += `$` + strconv.Itoa(i+2) + `,`
+		ids = append(ids, v)
+	}
+	paramrefs = paramrefs[:len(paramrefs)-1]
+	sqlQuery := `UPDATE links SET is_deleted = true WHERE user_id = $1 AND short IN (` + paramrefs + `)`
+	exec, err := conn.Exec(ctx, sqlQuery, ids...)
+	if err != nil {
+		return err
+	}
+
+	if exec.RowsAffected() < 1 {
+		return errors.New("filed delete data: " + exec.String())
+	}
+
+	return nil
 }
 
 func (s *store) migration() error {

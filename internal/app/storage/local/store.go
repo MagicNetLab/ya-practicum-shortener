@@ -8,35 +8,43 @@ import (
 	"github.com/MagicNetLab/ya-practicum-shortener/internal/service/logger"
 )
 
-type store struct {
-	isCacheLoaded bool
-	store         map[string]string
+type linkEntity struct {
+	userID      int
+	shortLink   string
+	originalURL string
+	isDeleted   bool
 }
 
-func (s *store) PutLink(link string, short string) error {
+type store struct {
+	isCacheLoaded bool
+	store         map[string]linkEntity
+}
+
+func (s *store) PutLink(link string, short string, userID int) error {
 	if link == "" || short == "" {
 		logger.Log.Errorf("Failed store link: empty link(%s) or short(%s)", link, short)
 		return errors.New("incorrect params to store link")
 	}
 
-	s.store[short] = link
+	l := linkEntity{shortLink: short, originalURL: link, userID: userID, isDeleted: false}
+	s.store[short] = l
 
 	cacheStore := GetCacheStore()
-	_ = cacheStore.Save(short, link)
+	_ = cacheStore.Save(l)
 
 	return nil
 }
 
-func (s *store) PutBatchLinksArray(StoreBatchLicksArray map[string]string) error {
+func (s *store) PutBatchLinksArray(StoreBatchLinksArray map[string]string, userID int) error {
 	rollback := false
 
-	for k, v := range StoreBatchLicksArray {
-		if v == "" {
+	for short, link := range StoreBatchLinksArray {
+		if link == "" {
 			rollback = true
 			break
 		}
 
-		err := s.PutLink(k, v)
+		err := s.PutLink(link, short, userID)
 		if err != nil {
 			rollback = true
 			break
@@ -44,7 +52,7 @@ func (s *store) PutBatchLinksArray(StoreBatchLicksArray map[string]string) error
 	}
 
 	if rollback {
-		for k := range StoreBatchLicksArray {
+		for k := range StoreBatchLinksArray {
 			delete(s.store, k)
 		}
 
@@ -54,13 +62,13 @@ func (s *store) PutBatchLinksArray(StoreBatchLicksArray map[string]string) error
 	return nil
 }
 
-func (s *store) GetLink(short string) (string, error) {
+func (s *store) GetLink(short string) (string, bool, error) {
 	link, ok := s.store[short]
 	if ok {
-		return link, nil
+		return link.originalURL, link.isDeleted, nil
 	}
 
-	return "", fmt.Errorf("short %s not found", short)
+	return "", false, fmt.Errorf("short %s not found", short)
 }
 
 func (s *store) HasShort(short string) (bool, error) {
@@ -71,11 +79,34 @@ func (s *store) HasShort(short string) (bool, error) {
 
 func (s *store) GetShort(link string) (string, error) {
 	for k, v := range s.store {
-		if v == link {
+		if v.originalURL == link {
 			return k, nil
 		}
 	}
 	return "", fmt.Errorf("short %s not found", link)
+}
+
+func (s *store) GetUserLinks(userID int) (map[string]string, error) {
+	result := make(map[string]string)
+	for _, v := range s.store {
+		if v.userID == userID {
+			result[v.shortLink] = v.originalURL
+		}
+	}
+	return result, nil
+}
+
+func (s *store) DeleteBatchLinksArray(shorts []string, userID int) error {
+	// todo подумать как малой кровью поменять данные в кэш файле
+	for _, short := range shorts {
+		data, ok := s.store[short]
+		if ok && data.userID == userID {
+			data.isDeleted = true
+			s.store[short] = data
+		}
+	}
+
+	return nil
 }
 
 func (s *store) Init() error {
@@ -108,11 +139,11 @@ func (s *store) loadFromFile(filePath string) error {
 		}
 
 		for _, v := range data {
-			s.store[v.Short] = v.Link
+			s.store[v.Short] = linkEntity{originalURL: v.Link, shortLink: v.Short, userID: v.UserID}
 		}
 	}
 
 	return nil
 }
 
-var Store = store{store: make(map[string]string, 2)}
+var Store = store{store: make(map[string]linkEntity, 2)}
