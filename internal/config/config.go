@@ -21,10 +21,11 @@ type ParameterConfig interface {
 	GetDBConnectString() string
 	SetJWTSecret(secret string) error
 	GetJWTSecret() string
+	SetPProfHost(host string) error
+	GetPProfHost() string
 	IsValid() bool
 }
 
-// TODO разделить структуру на 2 для defaultHost и shortHost
 type configParams struct {
 	defaultHost     string
 	defaultPort     string
@@ -33,6 +34,8 @@ type configParams struct {
 	fileStoragePath string
 	dbConnectString string
 	JWTSecret       string
+	pProfOn         bool
+	pProfHost       string
 }
 
 func (sp *configParams) SetFileStoragePath(path string) error {
@@ -94,6 +97,26 @@ func (sp *configParams) SetJWTSecret(secret string) error {
 
 func (sp *configParams) GetJWTSecret() string {
 	return sp.JWTSecret
+}
+
+func (sp *configParams) SetPProfOn(isOn bool) error {
+	sp.pProfOn = isOn
+
+	return nil
+}
+
+func (sp *configParams) IsPProfOn() bool {
+	return sp.pProfOn
+}
+
+func (sp *configParams) SetPProfHost(host string) error {
+	sp.pProfHost = host
+
+	return nil
+}
+
+func (sp *configParams) GetPProfHost() string {
+	return sp.pProfHost
 }
 
 var servParams configParams
@@ -164,6 +187,11 @@ func GetParams() ParameterConfig {
 				}
 			}
 		}
+
+		err = servParams.SetPProfHost(envConf.GetPPROFHost())
+		if err != nil {
+			logger.Log.Errorf("Fail set pprof host from env: %s", err)
+		}
 	}
 
 	cliConf := flags.Parse()
@@ -206,6 +234,16 @@ func GetParams() ParameterConfig {
 			err = servParams.SetDBConnectString(dbConnectParams)
 			if err != nil {
 				logger.Log.Errorf("Fail set db connect params from cli flags: %s", err)
+			}
+		}
+	}
+
+	if cliConf.HasPProfHost() {
+		pprofHost, pprofHostErr := cliConf.GetPProfHost()
+		if pprofHostErr == nil {
+			err = servParams.SetPProfHost(pprofHost)
+			if err != nil {
+				logger.Log.Errorf("Fail set pprof host from cli flags: %s", err)
 			}
 		}
 	}

@@ -8,7 +8,7 @@ import (
 )
 
 func Run(configurator configurator) {
-	listen := getListeners(configurator)
+	listen := getListeners()
 
 	for h, l := range listen {
 		h := h
@@ -16,10 +16,16 @@ func Run(configurator configurator) {
 		go func() { log.Fatal(http.ListenAndServe(h, l)) }()
 	}
 
+	if pprofHost := configurator.GetPProfHost(); pprofHost != "" {
+		go func() {
+			log.Println(http.ListenAndServe(pprofHost, nil))
+		}()
+	}
+
 	select {}
 }
 
-func getListeners(configurator configurator) listeners {
+func getListeners() listeners {
 	handlers := handle.GetHandlers()
 	l := make(listeners)
 	for _, v := range handlers {

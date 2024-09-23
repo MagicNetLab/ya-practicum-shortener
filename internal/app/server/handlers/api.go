@@ -33,6 +33,13 @@ func apiEncodeHandler() http.HandlerFunc {
 			return
 		}
 
+		if shortRequest.URL == "" {
+			http.Error(w, "Missing link", http.StatusBadRequest)
+			return
+		}
+
+		// todo проверка принятого url. проходит пустой
+
 		c := config.GetParams()
 		apiResult := APIResponse{Result: ""}
 		short, status := getShortLink(shortRequest.URL, userID)

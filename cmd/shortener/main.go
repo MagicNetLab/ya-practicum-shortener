@@ -2,6 +2,7 @@ package main
 
 import (
 	"log"
+	_ "net/http/pprof"
 
 	"github.com/MagicNetLab/ya-practicum-shortener/internal/app/server"
 	"github.com/MagicNetLab/ya-practicum-shortener/internal/app/storage"

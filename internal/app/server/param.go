@@ -12,6 +12,7 @@ type configurator interface {
 	GetDefaultHost() string
 	GetShortHost() string
 	IsValid() bool
+	GetPProfHost() string
 }
 
 type route struct {

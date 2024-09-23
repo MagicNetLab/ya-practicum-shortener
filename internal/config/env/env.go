@@ -15,6 +15,7 @@ type Config struct {
 	fileStoragePath string   `env:"FILE_STORAGE_PATH"`
 	dbConnectString string   `env:"DATABASE_DSN"`
 	jwtSecret       string   `env:"JWT_SECRET"`
+	pProfHost       string   `env:"PPROF_HOST" envDefault:"localhost:5000"`
 }
 
 var envConf = Config{}
@@ -110,6 +111,10 @@ func (e Config) GetJWTSecret() (string, error) {
 	return e.jwtSecret, nil
 }
 
+func (e Config) GetPPROFHost() string {
+	return e.pProfHost
+}
+
 func Parse() (Config, error) {
 	err := godotenv.Load(".env")
 	if err != nil {
@@ -136,6 +141,10 @@ func Parse() (Config, error) {
 
 	if JWTSecret := os.Getenv("JWT_SECRET"); JWTSecret != "" {
 		envConf.jwtSecret = JWTSecret
+	}
+
+	if pProfHost := os.Getenv("PPROF_HOST"); pProfHost != "" {
+		envConf.pProfHost = pProfHost
 	}
 
 	return envConf, nil

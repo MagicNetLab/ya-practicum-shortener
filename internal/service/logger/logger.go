@@ -6,7 +6,7 @@ import (
 	"time"
 )
 
-// Log TODO структурированное логгирование
+// TODO переписать логер как в дипломной
 
 var Log *zap.SugaredLogger = zap.NewNop().Sugar()
 
