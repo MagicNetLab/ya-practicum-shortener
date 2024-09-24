@@ -119,7 +119,7 @@ func Test_encodeLinkByUnique(t *testing.T) {
 	t.Run("test send not unique link", func(t *testing.T) {
 		store, err := storage.GetStore()
 		assert.NoError(t, err)
-		link := "https://mail.ru"
+		link := "https://cloud.ru"
 		userID := 3
 
 		err = store.PutLink(link, "uweyiu", userID)
