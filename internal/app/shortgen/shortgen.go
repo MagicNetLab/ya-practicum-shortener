@@ -7,7 +7,6 @@ import (
 
 var letters = []rune("abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ")
 
-// todo append tests
 func GetShortLink(n int) string {
 	b := make([]rune, n)
 	for i := range b {

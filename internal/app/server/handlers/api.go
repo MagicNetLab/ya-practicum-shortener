@@ -39,8 +39,6 @@ func apiEncodeHandler() http.HandlerFunc {
 			return
 		}
 
-		// todo проверка принятого url. проходит пустой
-
 		c := config.GetParams()
 		apiResult := APIResponse{Result: ""}
 		short, status := getShortLink(shortRequest.URL, userID)
