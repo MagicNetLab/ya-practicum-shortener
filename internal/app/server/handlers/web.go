@@ -12,6 +12,7 @@ import (
 	"github.com/go-chi/chi/v5"
 )
 
+// todo append tests
 func encodeHandler() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		if r.Method != http.MethodPost {
@@ -21,14 +22,16 @@ func encodeHandler() http.HandlerFunc {
 
 		userID, err := parseCookie(r)
 		if err != nil {
-			logger.Log.Errorf("failed get user from token: %v", err)
+			args := map[string]interface{}{"error": err.Error()}
+			logger.Error("failed get user id from cookie", args)
 			http.Error(w, "incorrect user token", http.StatusBadRequest)
 			return
 		}
 
 		link, err := io.ReadAll(r.Body)
 		if err != nil {
-			logger.Log.Errorf("Error reading body: %v", err)
+			args := map[string]interface{}{"error": err.Error()}
+			logger.Error("failed get link from request body", args)
 			http.Error(w, "Internal Server Error", http.StatusInternalServerError)
 			return
 		}
@@ -44,7 +47,8 @@ func encodeHandler() http.HandlerFunc {
 		w.WriteHeader(status)
 		_, err = w.Write([]byte(fmt.Sprintf("http://%s/%s", c.GetShortHost(), short)))
 		if err != nil {
-			logger.Log.Errorf("Failed to write response %v", err)
+			args := map[string]interface{}{"error": err.Error()}
+			logger.Error("failed write response", args)
 		}
 	}
 }
@@ -59,7 +63,8 @@ func decodeHandler() http.HandlerFunc {
 		short := chi.URLParam(r, "short")
 		store, err := storage.GetStore()
 		if err != nil {
-			logger.Log.Errorf("Failed to get store %v", err)
+			args := map[string]interface{}{"error": err.Error()}
+			logger.Error("failed get store", args)
 			http.Error(w, "Internal Server Error", http.StatusInternalServerError)
 		}
 
@@ -81,8 +86,8 @@ func decodeHandler() http.HandlerFunc {
 func pingHandler() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		isPostgresOK := postgres.Ping()
-		logger.Log.Infoln(isPostgresOK)
 		if !isPostgresOK {
+			logger.Error("failed to ping postgres", nil)
 			w.WriteHeader(http.StatusInternalServerError)
 		}
 

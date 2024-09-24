@@ -13,19 +13,21 @@ func Ping() bool {
 	dbConnect := parameterConfig.GetDBConnectString()
 
 	if dbConnect == "" {
-		logger.Log.Errorf("Postgres connection params not configured")
+		logger.Error("Postgres connection params not configured", nil)
 		return false
 	}
 
 	db, err := sql.Open("pgx", dbConnect)
 	if err != nil {
-		logger.Log.Infof("Postgres connection error: %v", err)
+		args := map[string]interface{}{"error": err.Error()}
+		logger.Error("Postgres connection error: %v", args)
 		return false
 	}
 
 	pingErr := db.Ping()
 	if pingErr != nil {
-		logger.Log.Infof("Postgres ping error: %v", pingErr)
+		args := map[string]interface{}{"error": pingErr.Error()}
+		logger.Error("Postgres ping error: %v", args)
 		return false
 	}
 

@@ -22,7 +22,8 @@ type store struct {
 
 func (s *store) PutLink(link string, short string, userID int) error {
 	if link == "" || short == "" {
-		logger.Log.Errorf("Failed store link: empty link(%s) or short(%s)", link, short)
+		args := map[string]interface{}{"link": link, "short": short}
+		logger.Error("failed store link: empty link or short", args)
 		return errors.New("incorrect params to store link")
 	}
 
@@ -118,7 +119,8 @@ func (s *store) Init() error {
 	if !s.isCacheLoaded {
 		err := s.loadFromFile(conf.GetFileStoragePath())
 		if err != nil {
-			logger.Log.Errorf("Failed to load local file storage: %s", err)
+			args := map[string]interface{}{"error": err.Error()}
+			logger.Error("failed load local storage file", args)
 			return err
 		}
 

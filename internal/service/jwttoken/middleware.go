@@ -17,7 +17,8 @@ func CheckAuthMiddleware(h http.HandlerFunc) http.HandlerFunc {
 		claims := &Claims{}
 		cookie, err := r.Cookie("token")
 		if err != nil {
-			logger.Log.Errorf("Cookie err: %v", err)
+			args := map[string]interface{}{"error": err.Error()}
+			logger.Error("failed get token from cookie", args)
 			http.Error(w, "Unauthorized", http.StatusUnauthorized)
 			return
 		}
@@ -32,13 +33,14 @@ func CheckAuthMiddleware(h http.HandlerFunc) http.HandlerFunc {
 			})
 
 		if err != nil {
-			logger.Log.Infof("failed to parse token: %v", err)
+			args := map[string]interface{}{"error": err.Error()}
+			logger.Info("failed to parse token", args)
 			http.Error(w, "Unauthorized", http.StatusUnauthorized)
 			return
 		}
 
 		if !token.Valid || claims.UserID == 0 {
-			logger.Log.Infof("invalid token")
+			logger.Error("invalid token", nil)
 			http.Error(w, "Unauthorized", http.StatusUnauthorized)
 			return
 		}
@@ -54,7 +56,8 @@ func TokenMiddleware(h http.HandlerFunc) http.HandlerFunc {
 			u := user.Create()
 			token, err := GenerateToken(u.ID, appConfig.GetJWTSecret())
 			if err != nil {
-				logger.Log.Errorf("failed to generate token: %v", err)
+				args := map[string]interface{}{"error": err.Error()}
+				logger.Error("failed to generate token", args)
 				http.Error(w, "Internal Server Error", http.StatusInternalServerError)
 				return
 			}

@@ -141,7 +141,8 @@ func GetParams() ParameterConfig {
 			if hostErr == nil && portErr == nil {
 				err = servParams.SetDefaultHost(host, port)
 				if err != nil {
-					logger.Log.Errorf("Fail set default host from env: %s", err)
+					args := map[string]interface{}{"error": err.Error()}
+					logger.Error("fail set default host from env", args)
 				}
 			}
 		}
@@ -153,7 +154,8 @@ func GetParams() ParameterConfig {
 			if hostErr == nil && portErr == nil {
 				err = servParams.SetShortHost(host, port)
 				if err != nil {
-					logger.Log.Errorf("Fail set short host from env: %s", err)
+					args := map[string]interface{}{"error": err.Error()}
+					logger.Error("Fail set short host from env", args)
 				}
 			}
 		}
@@ -163,7 +165,8 @@ func GetParams() ParameterConfig {
 			if storageErr == nil {
 				err = servParams.SetFileStoragePath(storagePath)
 				if err != nil {
-					logger.Log.Errorf("Fail set file storage path from env: %s", err)
+					args := map[string]interface{}{"error": err.Error()}
+					logger.Error("Fail set file storage path from env", args)
 				}
 			}
 		}
@@ -173,7 +176,8 @@ func GetParams() ParameterConfig {
 			if dbParamsErr == nil {
 				err = servParams.SetDBConnectString(dbConnectParams)
 				if err != nil {
-					logger.Log.Errorf("Fail set db connect params from env: %s", err)
+					args := map[string]interface{}{"error": err.Error()}
+					logger.Error("Fail set db connect params from env", args)
 				}
 			}
 		}
@@ -183,14 +187,16 @@ func GetParams() ParameterConfig {
 			if jwtSecretErr == nil {
 				err = servParams.SetJWTSecret(jwtSecret)
 				if err != nil {
-					logger.Log.Errorf("Fail set jwttoken secret from env: %s", err)
+					args := map[string]interface{}{"error": err.Error()}
+					logger.Error("Fail set jwttoken secret from env", args)
 				}
 			}
 		}
 
 		err = servParams.SetPProfHost(envConf.GetPPROFHost())
 		if err != nil {
-			logger.Log.Errorf("Fail set pprof host from env: %s", err)
+			args := map[string]interface{}{"error": err.Error()}
+			logger.Error("Fail set pprof host from env", args)
 		}
 	}
 
@@ -202,7 +208,8 @@ func GetParams() ParameterConfig {
 		if hostErr == nil && portErr == nil {
 			err = servParams.SetDefaultHost(host, port)
 			if err != nil {
-				logger.Log.Errorf("Fail set default host from cli flags: %s", err)
+				args := map[string]interface{}{"error": err.Error()}
+				logger.Error("fail set default host from cli flags", args)
 			}
 		}
 	}
@@ -213,7 +220,8 @@ func GetParams() ParameterConfig {
 		if hostErr == nil && portErr == nil {
 			err = servParams.SetShortHost(host, port)
 			if err != nil {
-				logger.Log.Errorf("Fail set short host from cli flags: %s", err)
+				args := map[string]interface{}{"error": err.Error()}
+				logger.Error("Fail set short host from cli flags", args)
 			}
 		}
 	}
@@ -223,7 +231,8 @@ func GetParams() ParameterConfig {
 		if storageErr == nil {
 			err = servParams.SetFileStoragePath(storagePath)
 			if err != nil {
-				logger.Log.Errorf("Fail set file storage path from cli flags: %s", err)
+				args := map[string]interface{}{"error": err.Error()}
+				logger.Error("Fail set file storage path from cli flags", args)
 			}
 		}
 	}
@@ -233,7 +242,8 @@ func GetParams() ParameterConfig {
 		if dbParamsErr == nil {
 			err = servParams.SetDBConnectString(dbConnectParams)
 			if err != nil {
-				logger.Log.Errorf("Fail set db connect params from cli flags: %s", err)
+				args := map[string]interface{}{"error": err.Error()}
+				logger.Error("Fail set db connect params from cli flags", args)
 			}
 		}
 	}
@@ -243,7 +253,8 @@ func GetParams() ParameterConfig {
 		if pprofHostErr == nil {
 			err = servParams.SetPProfHost(pprofHost)
 			if err != nil {
-				logger.Log.Errorf("Fail set pprof host from cli flags: %s", err)
+				args := map[string]interface{}{"error": err.Error()}
+				logger.Error("Fail set pprof host from cli flags", args)
 			}
 		}
 	}

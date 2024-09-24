@@ -14,6 +14,7 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
+// todo append tests
 func Test_apiEncodeHandler(t *testing.T) {
 	type want struct {
 		contentType string

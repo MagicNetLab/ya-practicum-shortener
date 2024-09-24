@@ -5,7 +5,6 @@ import (
 	"database/sql"
 	"errors"
 	"fmt"
-	"github.com/jackc/pgerrcode"
 	"strconv"
 	"strings"
 	"time"
@@ -15,6 +14,7 @@ import (
 	"github.com/golang-migrate/migrate/v4"
 	pgsql "github.com/golang-migrate/migrate/v4/database/postgres"
 	_ "github.com/golang-migrate/migrate/v4/source/file"
+	"github.com/jackc/pgerrcode"
 	"github.com/jackc/pgx/v5"
 	_ "github.com/lib/pq"
 )
@@ -51,17 +51,20 @@ func (s *store) Init() error {
 
 		con, err := pgx.Connect(context.Background(), s.connectString)
 		if err != nil {
-			logger.Log.Infof("Connect string is incorrect %s", err)
+			args := map[string]interface{}{"error": err.Error()}
+			logger.Error("failed to connect to database", args)
 			return err
 		}
 
 		err = con.Ping(context.Background())
 		if err != nil {
-			logger.Log.Infof("Unable to connect to database %s", err)
+			args := map[string]interface{}{"error": err.Error()}
+			logger.Error("failed to ping database", args)
 			return err
 		}
 	} else {
-		logger.Log.Infof("Faled parse connect string: %s", conf.GetDBConnectString())
+		args := map[string]interface{}{"connect": conf.GetDBConnectString()}
+		logger.Error("failed parse connect string", args)
 		s.connectString = conf.GetDBConnectString()
 	}
 
@@ -182,7 +185,6 @@ func (s *store) HasShort(short string) (bool, error) {
 }
 
 func (s *store) GetShort(link string) (string, error) {
-	// todo use context with timeout from handlers
 	ctx := context.Background()
 	conn, err := pgx.Connect(ctx, s.connectString)
 	if err != nil {
@@ -283,7 +285,8 @@ func (s *store) migration() error {
 	)
 
 	if err != nil {
-		logger.Log.Errorf("could not init migrations: %s", err)
+		args := map[string]interface{}{"error": err.Error()}
+		logger.Error("could not init migrations", args)
 	} else {
 		m.Up()
 	}

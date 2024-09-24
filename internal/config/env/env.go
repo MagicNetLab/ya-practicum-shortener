@@ -118,7 +118,8 @@ func (e Config) GetPPROFHost() string {
 func Parse() (Config, error) {
 	err := godotenv.Load(".env")
 	if err != nil {
-		logger.Log.Errorf(".env file not found: %s", err)
+		args := map[string]interface{}{"error": err.Error()}
+		logger.Error(".env file not found", args)
 	}
 
 	baseHost := os.Getenv("SERVER_ADDRESS")

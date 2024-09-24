@@ -1,6 +1,7 @@
 package server
 
 import (
+	"github.com/MagicNetLab/ya-practicum-shortener/internal/service/logger"
 	"log"
 	"net/http"
 
@@ -14,12 +15,18 @@ func Run(configurator configurator) {
 		h := h
 		l := l
 		go func() { log.Fatal(http.ListenAndServe(h, l)) }()
+
+		args := map[string]interface{}{"url": h}
+		logger.Info("listener starting", args)
 	}
 
 	if pprofHost := configurator.GetPProfHost(); pprofHost != "" {
 		go func() {
 			log.Println(http.ListenAndServe(pprofHost, nil))
 		}()
+
+		args := map[string]interface{}{"url": pprofHost}
+		logger.Info("pprof starting", args)
 	}
 
 	select {}

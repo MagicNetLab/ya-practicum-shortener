@@ -1,48 +1,53 @@
 package logger
 
 import (
+	"os"
+
 	"go.uber.org/zap"
-	"net/http"
-	"time"
+	"go.uber.org/zap/zapcore"
 )
 
-// TODO переписать логер как в дипломной
-
-var Log *zap.SugaredLogger = zap.NewNop().Sugar()
+var log = Logger{log: zap.NewNop()}
 
 func Initialize() error {
-	zl, err := zap.NewProduction()
-	if err != nil {
-		return err
+	encoderConfig := zapcore.EncoderConfig{
+		TimeKey:        "timestamp",
+		LevelKey:       "level",
+		NameKey:        "logger",
+		CallerKey:      "caller",
+		MessageKey:     "message",
+		StacktraceKey:  "stacktrace",
+		LineEnding:     zapcore.DefaultLineEnding,
+		EncodeLevel:    zapcore.CapitalLevelEncoder,
+		EncodeTime:     zapcore.ISO8601TimeEncoder,
+		EncodeDuration: zapcore.SecondsDurationEncoder,
+		EncodeCaller:   zapcore.ShortCallerEncoder,
 	}
 
-	Log = zl.Sugar()
+	core := zapcore.NewCore(
+		zapcore.NewJSONEncoder(encoderConfig),
+		zapcore.NewMultiWriteSyncer(zapcore.AddSync(os.Stdout)),
+		zap.InfoLevel,
+	)
+
+	logger := zap.New(core)
+	log = Logger{log: logger}
+
 	return nil
 }
 
-func Middleware(h http.HandlerFunc) http.HandlerFunc {
-	return func(w http.ResponseWriter, r *http.Request) {
-		start := time.Now()
+func Info(msg string, args map[string]interface{}) {
+	log.Info(msg, args)
+}
 
-		responseData := &ResponseData{
-			Status: 0,
-			Size:   0,
-		}
-		lw := loggingResponseWriter{
-			ResponseWriter: w,
-			responseData:   responseData,
-		}
+func Error(msg string, args map[string]interface{}) {
+	log.Error(msg, args)
+}
 
-		h.ServeHTTP(&lw, r)
+func Fatal(msg string, args map[string]interface{}) {
+	log.Fatal(msg, args)
+}
 
-		duration := time.Since(start)
-
-		Log.Infoln(
-			"uri", r.RequestURI,
-			"method", r.Method,
-			"status", responseData.Status,
-			"duration", duration,
-			"size", responseData.Size,
-		)
-	}
+func Sync() {
+	log.log.Sync()
 }

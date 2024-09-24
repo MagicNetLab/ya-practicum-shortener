@@ -25,7 +25,8 @@ func (cs *cacheStore) Load() ([]StoreEntity, error) {
 	for scanner.Scan() {
 		row := StoreEntity{}
 		if err := json.Unmarshal(scanner.Bytes(), &row); err != nil {
-			logger.Log.Errorf("Failed to parse cache file: %s", err)
+			args := map[string]interface{}{"error": err.Error()}
+			logger.Error("failed parse cache file", args)
 			return data, err
 		}
 
@@ -39,7 +40,8 @@ func (cs *cacheStore) Save(link linkEntity) error {
 	if storeFile.isInitialized {
 		file, err := os.OpenFile(storeFile.path, os.O_APPEND|os.O_WRONLY|os.O_CREATE, 0666)
 		if err != nil {
-			logger.Log.Errorf("Failed to open local file storage: %s", err)
+			args := map[string]interface{}{"error": err.Error()}
+			logger.Error("failed open local storage file", args)
 			return err
 		}
 		defer file.Close()
@@ -53,18 +55,21 @@ func (cs *cacheStore) Save(link linkEntity) error {
 		}
 		rowString, err := json.Marshal(rowData)
 		if err != nil {
-			logger.Log.Errorf("Failed to serialize cache data: %s", err)
+			args := map[string]interface{}{"error": err.Error()}
+			logger.Error("failed serialize cache data", args)
 			return err
 		}
 
 		_, err = writer.WriteString(string(rowString) + "\n")
 		if err != nil {
-			logger.Log.Errorf("Failed to write local file storage: %s", err)
+			args := map[string]interface{}{"error": err.Error()}
+			logger.Error("failed write local storage file", args)
 			return err
 		}
 
 		if err := writer.Flush(); err != nil {
-			logger.Log.Errorf("Failed to flush local file storage: %s", err)
+			args := map[string]interface{}{"error": err.Error()}
+			logger.Error("failed flush local storage file", args)
 		}
 	}
 

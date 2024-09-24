@@ -1,8 +1,9 @@
 package handlers
 
 import (
-	"github.com/MagicNetLab/ya-practicum-shortener/internal/config"
 	"net/http"
+
+	"github.com/MagicNetLab/ya-practicum-shortener/internal/config"
 )
 
 type RouteHandler struct {

@@ -19,7 +19,8 @@ import (
 func getShortLink(url string, userID int) (short string, httpResponseStatus int) {
 	store, err := storage.GetStore()
 	if err != nil {
-		logger.Log.Errorf("Error init storage: %v", err)
+		args := map[string]interface{}{"error": err.Error()}
+		logger.Error("error initializing storage", args)
 		return "", http.StatusInternalServerError
 	}
 
@@ -28,7 +29,8 @@ func getShortLink(url string, userID int) (short string, httpResponseStatus int)
 	err = store.PutLink(url, short, userID)
 	if err != nil {
 		httpResponseStatus = http.StatusInternalServerError
-		logger.Log.Errorf("Error putting short link: %v", err)
+		args := map[string]interface{}{"error": err.Error()}
+		logger.Error("error storing short link", args)
 		if errors.Is(err, postgres.ErrLinkUniqueConflict) {
 			short, err = store.GetShort(url)
 			if err == nil {
@@ -131,12 +133,14 @@ func deleteLinks(shorts []string, userID int) {
 
 	store, err := storage.GetStore()
 	if err != nil {
-		logger.Log.Errorf("Error init storage: %v", err)
+		args := map[string]interface{}{"error": err.Error()}
+		logger.Error("error initializing storage", args)
 		return
 	}
 
 	err = store.DeleteBatchLinksArray(shorts, userID)
 	if err != nil {
-		logger.Log.Errorf("Error deleting short links: %v", err)
+		args := map[string]interface{}{"error": err.Error()}
+		logger.Error("error deleting short links", args)
 	}
 }
