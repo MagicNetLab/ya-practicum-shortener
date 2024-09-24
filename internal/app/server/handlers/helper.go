@@ -9,6 +9,7 @@ import (
 
 	"github.com/MagicNetLab/ya-practicum-shortener/internal/app/shortgen"
 	"github.com/MagicNetLab/ya-practicum-shortener/internal/app/storage"
+	"github.com/MagicNetLab/ya-practicum-shortener/internal/app/storage/local"
 	"github.com/MagicNetLab/ya-practicum-shortener/internal/app/storage/postgres"
 	"github.com/MagicNetLab/ya-practicum-shortener/internal/config"
 	"github.com/MagicNetLab/ya-practicum-shortener/internal/service/jwttoken"
@@ -31,7 +32,8 @@ func getShortLink(url string, userID int) (short string, httpResponseStatus int)
 		httpResponseStatus = http.StatusInternalServerError
 		args := map[string]interface{}{"error": err.Error()}
 		logger.Error("error storing short link", args)
-		if errors.Is(err, postgres.ErrLinkUniqueConflict) {
+		notUniqueError := errors.Is(err, postgres.ErrLinkUniqueConflict) || errors.Is(err, local.ErrorLinkNotUnique)
+		if notUniqueError {
 			short, err = store.GetShort(url)
 			if err == nil {
 				httpResponseStatus = http.StatusConflict

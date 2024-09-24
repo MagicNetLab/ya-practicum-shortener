@@ -1,5 +1,7 @@
 package local
 
+import "errors"
+
 type StoreEntity struct {
 	Short     string `json:"short"`
 	Link      string `json:"link"`
@@ -14,3 +16,5 @@ type CacheStoreInterface interface {
 	SetPath(path string)
 	SetInitialized(isInitialized bool)
 }
+
+var ErrorLinkNotUnique = errors.New("link not unique")

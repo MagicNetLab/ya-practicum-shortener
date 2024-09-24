@@ -27,6 +27,12 @@ func (s *store) PutLink(link string, short string, userID int) error {
 		return errors.New("incorrect params to store link")
 	}
 
+	for _, v := range s.store {
+		if v.originalURL == link && v.userID == userID {
+			return ErrorLinkNotUnique
+		}
+	}
+
 	l := linkEntity{shortLink: short, originalURL: link, userID: userID, isDeleted: false}
 	s.store[short] = l
 

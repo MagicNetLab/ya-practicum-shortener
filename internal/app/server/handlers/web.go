@@ -12,7 +12,6 @@ import (
 	"github.com/go-chi/chi/v5"
 )
 
-// todo append tests
 func encodeHandler() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		if r.Method != http.MethodPost {
@@ -45,11 +44,7 @@ func encodeHandler() http.HandlerFunc {
 		short, status := getShortLink(string(link), userID)
 		w.Header().Set("content-type", "text/plain")
 		w.WriteHeader(status)
-		_, err = w.Write([]byte(fmt.Sprintf("http://%s/%s", c.GetShortHost(), short)))
-		if err != nil {
-			args := map[string]interface{}{"error": err.Error()}
-			logger.Error("failed write response", args)
-		}
+		w.Write([]byte(fmt.Sprintf("http://%s/%s", c.GetShortHost(), short)))
 	}
 }
 
