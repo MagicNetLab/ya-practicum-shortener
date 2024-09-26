@@ -7,6 +7,8 @@ import (
 	"sync"
 	"time"
 
+	"github.com/golang-jwt/jwt/v4"
+
 	"github.com/MagicNetLab/ya-practicum-shortener/internal/app/shortgen"
 	"github.com/MagicNetLab/ya-practicum-shortener/internal/app/storage"
 	"github.com/MagicNetLab/ya-practicum-shortener/internal/app/storage/local"
@@ -14,7 +16,6 @@ import (
 	"github.com/MagicNetLab/ya-practicum-shortener/internal/config"
 	"github.com/MagicNetLab/ya-practicum-shortener/internal/service/jwttoken"
 	"github.com/MagicNetLab/ya-practicum-shortener/internal/service/logger"
-	"github.com/golang-jwt/jwt/v4"
 )
 
 func getShortLink(url string, userID int) (short string, httpResponseStatus int) {

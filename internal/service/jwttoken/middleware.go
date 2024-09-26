@@ -5,10 +5,11 @@ import (
 	"net/http"
 	"time"
 
+	"github.com/golang-jwt/jwt/v4"
+
 	"github.com/MagicNetLab/ya-practicum-shortener/internal/config"
 	"github.com/MagicNetLab/ya-practicum-shortener/internal/service/logger"
 	"github.com/MagicNetLab/ya-practicum-shortener/internal/service/user"
-	"github.com/golang-jwt/jwt/v4"
 )
 
 func CheckAuthMiddleware(h http.HandlerFunc) http.HandlerFunc {

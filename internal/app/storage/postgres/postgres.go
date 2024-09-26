@@ -3,9 +3,10 @@ package postgres
 import (
 	"database/sql"
 
+	_ "github.com/jackc/pgx/v5/stdlib"
+
 	"github.com/MagicNetLab/ya-practicum-shortener/internal/config"
 	"github.com/MagicNetLab/ya-practicum-shortener/internal/service/logger"
-	_ "github.com/jackc/pgx/v5/stdlib"
 )
 
 func Ping() bool {

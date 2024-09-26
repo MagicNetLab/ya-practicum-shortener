@@ -5,8 +5,9 @@ import (
 	"os"
 	"strings"
 
-	"github.com/MagicNetLab/ya-practicum-shortener/internal/service/logger"
 	"github.com/joho/godotenv"
+
+	"github.com/MagicNetLab/ya-practicum-shortener/internal/service/logger"
 )
 
 type Config struct {

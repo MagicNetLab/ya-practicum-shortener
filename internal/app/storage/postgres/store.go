@@ -9,14 +9,15 @@ import (
 	"strings"
 	"time"
 
-	"github.com/MagicNetLab/ya-practicum-shortener/internal/config"
-	"github.com/MagicNetLab/ya-practicum-shortener/internal/service/logger"
 	"github.com/golang-migrate/migrate/v4"
 	pgsql "github.com/golang-migrate/migrate/v4/database/postgres"
 	_ "github.com/golang-migrate/migrate/v4/source/file"
 	"github.com/jackc/pgerrcode"
 	"github.com/jackc/pgx/v5"
 	_ "github.com/lib/pq"
+
+	"github.com/MagicNetLab/ya-practicum-shortener/internal/config"
+	"github.com/MagicNetLab/ya-practicum-shortener/internal/service/logger"
 )
 
 const (

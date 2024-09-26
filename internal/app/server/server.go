@@ -1,9 +1,10 @@
 package server
 
 import (
-	"github.com/MagicNetLab/ya-practicum-shortener/internal/service/logger"
 	"log"
 	"net/http"
+
+	"github.com/MagicNetLab/ya-practicum-shortener/internal/service/logger"
 
 	handle "github.com/MagicNetLab/ya-practicum-shortener/internal/app/server/handlers"
 )

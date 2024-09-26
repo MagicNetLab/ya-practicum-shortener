@@ -5,11 +5,12 @@ import (
 	"io"
 	"net/http"
 
+	"github.com/go-chi/chi/v5"
+
 	"github.com/MagicNetLab/ya-practicum-shortener/internal/app/storage"
 	"github.com/MagicNetLab/ya-practicum-shortener/internal/app/storage/postgres"
 	"github.com/MagicNetLab/ya-practicum-shortener/internal/config"
 	"github.com/MagicNetLab/ya-practicum-shortener/internal/service/logger"
-	"github.com/go-chi/chi/v5"
 )
 
 func encodeHandler() http.HandlerFunc {
