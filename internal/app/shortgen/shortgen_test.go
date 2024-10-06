@@ -1,7 +1,6 @@
 package shortgen
 
 import (
-	"fmt"
 	"testing"
 )
 
@@ -10,9 +9,4 @@ func BenchmarkGetShortLink(b *testing.B) {
 	for i := 0; i < b.N; i++ {
 		GetShortLink(7)
 	}
-}
-
-func ExampleGetShortLink() {
-	short := GetShortLink(7)
-	fmt.Println(short)
 }
