@@ -12,6 +12,7 @@ import (
 	"github.com/MagicNetLab/ya-practicum-shortener/internal/service/user"
 )
 
+// CheckAuthMiddleware миддлвара для проверки авторизации пользователя.
 func CheckAuthMiddleware(h http.HandlerFunc) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		appConfig := config.GetParams()
@@ -49,6 +50,8 @@ func CheckAuthMiddleware(h http.HandlerFunc) http.HandlerFunc {
 	}
 }
 
+// TokenMiddleware миддлвара для установки токена пользователя.
+// Тестовый вариант пока нет методов для регистрации и авторизации.
 func TokenMiddleware(h http.HandlerFunc) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		appConfig := config.GetParams()

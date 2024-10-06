@@ -7,13 +7,7 @@ import (
 	"github.com/golang-jwt/jwt/v4"
 )
 
-const TokenLifeTime = time.Hour * 3
-
-type Claims struct {
-	jwt.RegisteredClaims
-	UserID int
-}
-
+// Валидация jwt токена пользователя
 func validateToken(tokenString string, jwtSecret string) bool {
 	claims := &Claims{}
 	token, err := jwt.ParseWithClaims(tokenString, claims,
@@ -35,6 +29,7 @@ func validateToken(tokenString string, jwtSecret string) bool {
 	return true
 }
 
+// GenerateToken генерация jwt токена для пользователя
 func GenerateToken(userID int, jwtSecret string) (string, error) {
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, Claims{
 		RegisteredClaims: jwt.RegisteredClaims{

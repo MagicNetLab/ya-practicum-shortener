@@ -15,6 +15,7 @@ func main() {
 	if err != nil {
 		log.Fatalf("Failed to initialize logger: %v", err)
 	}
+	defer logger.Sync()
 
 	conf := config.GetParams()
 	if !conf.IsValid() {

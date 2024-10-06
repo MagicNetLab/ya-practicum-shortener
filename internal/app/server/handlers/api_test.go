@@ -1,7 +1,9 @@
 package handlers
 
 import (
+	"github.com/MagicNetLab/ya-practicum-shortener/internal/app/storage/local"
 	"io"
+	mrand "math/rand"
 	"net/http"
 	"net/http/httptest"
 	"strings"
@@ -158,7 +160,6 @@ func Test_apiEncodeLinkByUnique(t *testing.T) {
 	})
 }
 
-// TODO test apiBatchEncodeHandler
 func Test_apiBatchEncodeHandler(t *testing.T) {
 	type want struct {
 		contentType string
@@ -222,7 +223,18 @@ func Test_apiBatchEncodeHandler(t *testing.T) {
 			},
 			request: "/api/shorten/batch",
 		},
-		// test missing link
+		{
+			name:   "test missing links",
+			method: http.MethodPost,
+			cookie: true,
+			body:   "{\"url\": \"\"}",
+			want: want{
+				contentType: "text/plain; charset=utf-8",
+				statusCode:  http.StatusBadRequest,
+				body:        `Missing link`,
+			},
+			request: "/api/shorten/batch",
+		},
 	}
 
 	c := config.GetParams()
@@ -237,6 +249,77 @@ func Test_apiBatchEncodeHandler(t *testing.T) {
 
 			w := httptest.NewRecorder()
 			h := apiBatchEncodeHandler()
+			h(w, request)
+
+			result := w.Result()
+
+			assert.Equal(t, tt.want.statusCode, result.StatusCode)
+			assert.Equal(t, tt.want.contentType, result.Header.Get("Content-Type"))
+
+			bodyResult, err := io.ReadAll(result.Body)
+			require.NoError(t, err)
+			err = result.Body.Close()
+			require.NoError(t, err)
+
+			assert.Contains(t, string(bodyResult), tt.want.body)
+		})
+	}
+}
+
+func Test_apiListUserLinksHandler(t *testing.T) {
+	wrongUserID := mrand.Intn(999999)
+	successUserID := mrand.Intn(999999)
+	putData := map[string]string{"dshdgj": "http://rambler.ru", "xnmbsd": "http://yandex.ru"}
+	err := local.Store.PutBatchLinksArray(putData, successUserID)
+	require.NoError(t, err)
+
+	type want struct {
+		contentType string
+		statusCode  int
+		body        string
+	}
+
+	tests := []struct {
+		name    string
+		method  string
+		userID  int
+		want    want
+		request string
+	}{
+		{
+			name:   "Test missing user links",
+			method: http.MethodGet,
+			userID: wrongUserID,
+			want: want{
+				contentType: "application/json",
+				statusCode:  http.StatusNoContent,
+				body:        "",
+			},
+			request: "/api/user/urls",
+		},
+		{
+			name:   "Test success exists user links",
+			method: http.MethodGet,
+			userID: successUserID,
+			want: want{
+				contentType: "application/json",
+				statusCode:  http.StatusOK,
+				body:        `[{"short_url":"http://localhost:8080/dshdgj","original_url":"http://rambler.ru"},{"short_url":"http://localhost:8080/xnmbsd","original_url":"http://yandex.ru"}]`,
+			},
+			request: "/api/user/urls",
+		},
+	}
+
+	c := config.GetParams()
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			request := httptest.NewRequest(tt.method, tt.request, strings.NewReader(""))
+			token, _ := jwttoken.GenerateToken(tt.userID, c.GetJWTSecret())
+			newCookie := http.Cookie{Name: "token", Value: token, Path: "/", Expires: time.Now().Add(5 * time.Minute)}
+			request.AddCookie(&newCookie)
+
+			w := httptest.NewRecorder()
+			h := apiListUserLinksHandler()
 			h(w, request)
 
 			result := w.Result()

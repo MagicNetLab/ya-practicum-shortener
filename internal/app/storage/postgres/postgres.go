@@ -9,6 +9,7 @@ import (
 	"github.com/MagicNetLab/ya-practicum-shortener/internal/service/logger"
 )
 
+// Ping проверка соединения с БД
 func Ping() bool {
 	parameterConfig := config.GetParams()
 	dbConnect := parameterConfig.GetDBConnectString()

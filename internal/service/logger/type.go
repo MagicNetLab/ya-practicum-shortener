@@ -6,6 +6,7 @@ import (
 	"go.uber.org/zap"
 )
 
+// Logger объект логера для приложения
 type Logger struct {
 	log *zap.Logger
 }
@@ -35,14 +36,14 @@ func (l *Logger) Sync() {
 	l.log.Sync()
 }
 
-type ResponseData struct {
+type responseData struct {
 	Status int
 	Size   int
 }
 
 type loggingResponseWriter struct {
 	http.ResponseWriter
-	responseData *ResponseData
+	responseData *responseData
 }
 
 func (r *loggingResponseWriter) Write(b []byte) (int, error) {

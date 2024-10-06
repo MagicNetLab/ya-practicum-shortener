@@ -7,6 +7,7 @@ import (
 
 var letters = []rune("abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ")
 
+// GetShortLink генерация хеша для короткой ссылки
 func GetShortLink(n int) string {
 	b := make([]rune, n)
 	for i := range b {

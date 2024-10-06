@@ -31,6 +31,7 @@ func Test_encodeLinkHeader(t *testing.T) {
 		name    string
 		method  string
 		body    string
+		userID  int
 		cookies bool
 		want    want
 		request string
@@ -39,6 +40,7 @@ func Test_encodeLinkHeader(t *testing.T) {
 			name:    "Test wrong method",
 			method:  http.MethodGet,
 			body:    "",
+			userID:  28,
 			cookies: true,
 			want: want{
 				contentType: "text/plain; charset=utf-8",
@@ -51,6 +53,7 @@ func Test_encodeLinkHeader(t *testing.T) {
 			name:    "Test empty body",
 			method:  http.MethodPost,
 			body:    "",
+			userID:  33,
 			cookies: true,
 			want: want{
 				contentType: "text/plain; charset=utf-8",
@@ -63,6 +66,7 @@ func Test_encodeLinkHeader(t *testing.T) {
 			name:    "Test success",
 			method:  http.MethodPost,
 			body:    "http://yandex.ru",
+			userID:  23,
 			cookies: true,
 			want: want{
 				contentType: "text/plain",
@@ -75,6 +79,7 @@ func Test_encodeLinkHeader(t *testing.T) {
 			name:    "Test empty body",
 			method:  http.MethodPost,
 			body:    "",
+			userID:  48,
 			cookies: false,
 			want: want{
 				contentType: "text/plain; charset=utf-8",
@@ -93,7 +98,7 @@ func Test_encodeLinkHeader(t *testing.T) {
 			if tt.cookies == false {
 				cookieName = "tokien"
 			}
-			token, _ := jwttoken.GenerateToken(3, c.GetJWTSecret())
+			token, _ := jwttoken.GenerateToken(tt.userID, c.GetJWTSecret())
 			newCookie := http.Cookie{Name: cookieName, Value: token, Path: "/", Expires: time.Now().Add(5 * time.Minute)}
 			request.AddCookie(&newCookie)
 
@@ -180,7 +185,8 @@ func Test_decodeLinkHeader(t *testing.T) {
 			},
 			request: "/jsdhkahs",
 		},
-		// short link is deleted
+
+		// todo short link is deleted
 		//{
 		//	name:    "Test short link is deleted",
 		//	method:  http.MethodGet,
@@ -190,7 +196,7 @@ func Test_decodeLinkHeader(t *testing.T) {
 		//	},
 		//	request: "/jsdhkahs",
 		//},
-		// success get link
+		// todo success get link
 	}
 
 	for _, tt := range tests {

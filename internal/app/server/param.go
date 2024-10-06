@@ -7,8 +7,8 @@ import (
 )
 
 type configurator interface {
-	SetDefaultHost(host string, port string) error
-	SetShortHost(host string, port string) error
+	//SetDefaultHost(host string, port string) error
+	//SetShortHost(host string, port string) error
 	GetDefaultHost() string
 	GetShortHost() string
 	IsValid() bool
