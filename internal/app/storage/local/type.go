@@ -27,6 +27,7 @@ type cacheStore struct {
 	path          string
 }
 
+// Load загрузка данных из файла кэша
 func (cs *cacheStore) Load() ([]StoreEntity, error) {
 	data := make([]StoreEntity, 0)
 	file, err := os.OpenFile(cs.path, os.O_RDONLY|os.O_WRONLY|os.O_CREATE, 0666)
@@ -50,6 +51,7 @@ func (cs *cacheStore) Load() ([]StoreEntity, error) {
 	return data, nil
 }
 
+// Save сохранение данных в файле кэша
 func (cs *cacheStore) Save(link linkEntity) error {
 	if storeFile.isInitialized {
 		file, err := os.OpenFile(storeFile.path, os.O_APPEND|os.O_WRONLY|os.O_CREATE, 0666)
@@ -90,14 +92,17 @@ func (cs *cacheStore) Save(link linkEntity) error {
 	return nil
 }
 
+// IsInitialized проверяет инициализирован кэш или нет
 func (cs *cacheStore) IsInitialized() bool {
 	return cs.isInitialized
 }
 
+// SetPath установка пути до файла кэша
 func (cs *cacheStore) SetPath(path string) {
 	cs.path = path
 }
 
+// SetInitialized установка параметра инициализации кэша
 func (cs *cacheStore) SetInitialized(isInitialized bool) {
 	cs.isInitialized = isInitialized
 }

@@ -9,6 +9,7 @@ import (
 	handle "github.com/MagicNetLab/ya-practicum-shortener/internal/app/server/handlers"
 )
 
+// Run запуск сервера
 func Run(configurator configurator) {
 	listen := getListeners()
 
@@ -37,7 +38,7 @@ func getListeners() listeners {
 	handlers := handle.GetHandlers()
 	l := make(listeners)
 	for _, v := range handlers {
-		l.Append(v.Host, route{
+		l.append(v.Host, route{
 			path:    v.Path,
 			method:  v.Method,
 			handler: v.Handler,

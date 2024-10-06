@@ -9,6 +9,7 @@ import (
 
 var log = Logger{log: zap.NewNop()}
 
+// Initialize инициализация логера
 func Initialize() error {
 	encoderConfig := zapcore.EncoderConfig{
 		TimeKey:        "timestamp",
@@ -36,18 +37,22 @@ func Initialize() error {
 	return nil
 }
 
+// Info отправка информационного сообщения в логи
 func Info(msg string, args map[string]interface{}) {
 	log.Info(msg, args)
 }
 
+// Error отправка сообщения об ошибке в логи
 func Error(msg string, args map[string]interface{}) {
 	log.Error(msg, args)
 }
 
+// Fatal отправка сообщения об ошибке в логи и завершение работы приложения
 func Fatal(msg string, args map[string]interface{}) {
 	log.Fatal(msg, args)
 }
 
+// Sync сброс закэшированных данных в логи
 func Sync() {
 	log.log.Sync()
 }

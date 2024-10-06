@@ -12,6 +12,7 @@ var storageList = map[string]ILinkStore{
 	"postgres": &postgres.Store,
 }
 
+// GetStore получение объекта хранилища согласно настройкам приложения
 func GetStore() (ILinkStore, error) {
 	var store ILinkStore
 	appConfig := config.GetParams()
@@ -29,5 +30,4 @@ func GetStore() (ILinkStore, error) {
 	}
 
 	return store, nil
-
 }

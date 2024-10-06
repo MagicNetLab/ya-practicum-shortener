@@ -5,6 +5,7 @@ import (
 	"time"
 )
 
+// Middleware миддлвара для логирования запросов
 func Middleware(h http.HandlerFunc) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		start := time.Now()

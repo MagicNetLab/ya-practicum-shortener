@@ -11,14 +11,17 @@ type Logger struct {
 	log *zap.Logger
 }
 
+// Info отправка информационного сообщения в логи
 func (l *Logger) Info(msg string, args map[string]interface{}) {
 	l.log.Info(msg, l.prepareArgs(args)...)
 }
 
+// Error отправка сообщения об ошибке в логи
 func (l *Logger) Error(msg string, args map[string]interface{}) {
 	l.log.Error(msg, l.prepareArgs(args)...)
 }
 
+// Fatal отправка сообщения об ошибке в логи и завершения работы приложения
 func (l *Logger) Fatal(msg string, args map[string]interface{}) {
 	l.log.Fatal(msg, l.prepareArgs(args)...)
 }
@@ -32,6 +35,7 @@ func (l *Logger) prepareArgs(args map[string]interface{}) []zap.Field {
 	return r
 }
 
+// Sync сброс закешированных сообщений в логи
 func (l *Logger) Sync() {
 	l.log.Sync()
 }

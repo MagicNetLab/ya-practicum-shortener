@@ -6,6 +6,7 @@ import (
 	"github.com/MagicNetLab/ya-practicum-shortener/internal/config"
 )
 
+// RouteHandler объект с информацией необходимой для инициализации роута
 type RouteHandler struct {
 	Host    string
 	Method  string
@@ -13,8 +14,10 @@ type RouteHandler struct {
 	Handler http.HandlerFunc
 }
 
+// MapHandlers массив с данными роутов для запуска приложения
 type MapHandlers map[string]RouteHandler
 
+// GetHandlers возвращает массив с данными роутов для старта приложения
 func GetHandlers() MapHandlers {
 	var handlers = MapHandlers{}
 	c := config.GetParams()

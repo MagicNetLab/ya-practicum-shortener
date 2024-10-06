@@ -5,15 +5,17 @@ import (
 	"database/sql"
 	"errors"
 	"fmt"
-	"github.com/MagicNetLab/ya-practicum-shortener/internal/config"
-	"github.com/MagicNetLab/ya-practicum-shortener/internal/service/logger"
+	"strconv"
+	"strings"
+	"time"
+
 	"github.com/golang-migrate/migrate/v4"
 	pgsql "github.com/golang-migrate/migrate/v4/database/postgres"
 	"github.com/jackc/pgerrcode"
 	"github.com/jackc/pgx/v5"
-	"strconv"
-	"strings"
-	"time"
+
+	"github.com/MagicNetLab/ya-practicum-shortener/internal/config"
+	"github.com/MagicNetLab/ya-practicum-shortener/internal/service/logger"
 )
 
 const (
@@ -41,6 +43,7 @@ type store struct {
 	connectString string
 }
 
+// Init инициализация БД
 func (s *store) Init() error {
 	conf := config.GetParams()
 
@@ -82,6 +85,7 @@ func (s *store) Init() error {
 	return nil
 }
 
+// PutLink сохранение ссылки пользователя в БД
 func (s *store) PutLink(link string, short string, userID int) error {
 	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
 	defer cancel()
@@ -107,6 +111,7 @@ func (s *store) PutLink(link string, short string, userID int) error {
 	return nil
 }
 
+// PutBatchLinksArray пакетное сохранение ссылок пользователя в БД
 func (s *store) PutBatchLinksArray(StoreBatchLicksArray map[string]string, userID int) error {
 	// TODO use prepare statement
 	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
@@ -148,6 +153,7 @@ func (s *store) PutBatchLinksArray(StoreBatchLicksArray map[string]string, userI
 	return nil
 }
 
+// GetLink получение оригинальной ссылки из БД по сокращенному хэшу
 func (s *store) GetLink(short string) (string, bool, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
 	defer cancel()
@@ -168,6 +174,7 @@ func (s *store) GetLink(short string) (string, bool, error) {
 	return link, isDeleted, nil
 }
 
+// HasShort проверка наличия короткой ссылки в БД
 func (s *store) HasShort(short string) (bool, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
 	defer cancel()
@@ -191,6 +198,7 @@ func (s *store) HasShort(short string) (bool, error) {
 	return true, nil
 }
 
+// GetShort получение сокращенного хэша для ссылки из БД
 func (s *store) GetShort(link string) (string, error) {
 	ctx := context.Background()
 	conn, err := pgx.Connect(ctx, s.connectString)
@@ -209,6 +217,7 @@ func (s *store) GetShort(link string) (string, error) {
 
 }
 
+// GetUserLinks получение всех ссылок пользователя из БД
 func (s *store) GetUserLinks(userID int) (map[string]string, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
@@ -244,6 +253,7 @@ func (s *store) GetUserLinks(userID int) (map[string]string, error) {
 	return res, nil
 }
 
+// DeleteBatchLinksArray пакетное удаление ссылок пользователя
 func (s *store) DeleteBatchLinksArray(shorts []string, userID int) error {
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
