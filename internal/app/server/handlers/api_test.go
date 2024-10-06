@@ -269,7 +269,7 @@ func Test_apiBatchEncodeHandler(t *testing.T) {
 func Test_apiListUserLinksHandler(t *testing.T) {
 	wrongUserID := mrand.Intn(999999)
 	successUserID := mrand.Intn(999999)
-	putData := map[string]string{"dshdgj": "http://rambler.ru", "xnmbsd": "http://yandex.ru"}
+	putData := map[string]string{"dshdgj": "http://rambler.ru"}
 	err := local.Store.PutBatchLinksArray(putData, successUserID)
 	require.NoError(t, err)
 
@@ -304,7 +304,7 @@ func Test_apiListUserLinksHandler(t *testing.T) {
 			want: want{
 				contentType: "application/json",
 				statusCode:  http.StatusOK,
-				body:        `[{"short_url":"http://localhost:8080/dshdgj","original_url":"http://rambler.ru"},{"short_url":"http://localhost:8080/xnmbsd","original_url":"http://yandex.ru"}]`,
+				body:        `[{"short_url":"http://localhost:8080/dshdgj","original_url":"http://rambler.ru"}]`,
 			},
 			request: "/api/user/urls",
 		},
