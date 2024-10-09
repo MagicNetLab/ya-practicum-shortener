@@ -2,7 +2,7 @@ package local
 
 var storeFile cacheStore
 
-// GetCacheStore получение кэша с данными
-func GetCacheStore() CacheStoreInterface {
-	return &storeFile
+// getCacheStore получение кэша с данными
+func getCacheStore() cacheStore {
+	return storeFile
 }

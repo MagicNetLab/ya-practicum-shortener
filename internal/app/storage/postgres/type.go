@@ -50,6 +50,9 @@ func (s *store) Init() error {
 	connectParams, err := parseConnectString(conf.GetDBConnectString())
 	if err == nil {
 		s.params = connectParams
+		ctx, cancel := context.WithTimeout(context.Background(), time.Second*3)
+		defer cancel()
+
 		s.connectString = fmt.Sprintf(
 			"postgres://%s:%s@%s:%s/%s?sslmode=%s",
 			connectParams[dbUser],
@@ -59,14 +62,14 @@ func (s *store) Init() error {
 			connectParams[dbName],
 			connectParams[dbDBSslMode])
 
-		con, err := pgx.Connect(context.Background(), s.connectString)
+		con, err := pgx.Connect(ctx, s.connectString)
 		if err != nil {
 			args := map[string]interface{}{"error": err.Error()}
 			logger.Error("failed to connect to database", args)
 			return err
 		}
 
-		err = con.Ping(context.Background())
+		err = con.Ping(ctx)
 		if err != nil {
 			args := map[string]interface{}{"error": err.Error()}
 			logger.Error("failed to ping database", args)

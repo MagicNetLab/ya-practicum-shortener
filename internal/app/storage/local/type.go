@@ -138,7 +138,7 @@ func (s *store) PutLink(link string, short string, userID int) error {
 	l := linkEntity{shortLink: short, originalURL: link, userID: userID, isDeleted: false}
 	s.store[short] = l
 
-	cacheStore := GetCacheStore()
+	cacheStore := getCacheStore()
 	_ = cacheStore.Save(l)
 
 	return nil
@@ -247,7 +247,7 @@ func (s *store) Init() error {
 
 // loadFromFile загрузка данных в память из файла кэша
 func (s *store) loadFromFile(filePath string) error {
-	cacheStore := GetCacheStore()
+	cacheStore := getCacheStore()
 	if filePath != "" {
 		cacheStore.SetPath(filePath)
 		cacheStore.SetInitialized(true)

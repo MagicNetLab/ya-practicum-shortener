@@ -1,7 +1,7 @@
 package storage
 
-// ILinkStore интерфейс объекта для работы с хранилищем ссылок
-type ILinkStore interface {
+// Storer интерфейс объекта для работы с хранилищем ссылок
+type Storer interface {
 	// PutLink сохранение ссылки пользователя в хранилище.
 	PutLink(link string, short string, userID int) error
 
