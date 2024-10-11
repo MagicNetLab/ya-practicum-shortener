@@ -1,7 +1,7 @@
 package handlers
 
 import (
-	"github.com/MagicNetLab/ya-practicum-shortener/internal/app/storage/local"
+	"context"
 	"io"
 	mrand "math/rand"
 	"net/http"
@@ -14,6 +14,7 @@ import (
 	"github.com/stretchr/testify/require"
 
 	"github.com/MagicNetLab/ya-practicum-shortener/internal/app/storage"
+	"github.com/MagicNetLab/ya-practicum-shortener/internal/app/storage/local"
 	"github.com/MagicNetLab/ya-practicum-shortener/internal/config"
 	"github.com/MagicNetLab/ya-practicum-shortener/internal/service/jwttoken"
 )
@@ -131,7 +132,7 @@ func Test_apiEncodeLinkByUnique(t *testing.T) {
 		link := "https://mail.ru"
 		userID := 3
 
-		err = store.PutLink(link, "uweyiu", userID)
+		err = store.PutLink(context.Background(), link, "uweyiu", userID)
 		assert.NoError(t, err)
 
 		c := config.GetParams()
@@ -270,7 +271,7 @@ func Test_apiListUserLinksHandler(t *testing.T) {
 	wrongUserID := mrand.Intn(999999)
 	successUserID := mrand.Intn(999999)
 	putData := map[string]string{"dshdgj": "http://rambler.ru"}
-	err := local.Store.PutBatchLinksArray(putData, successUserID)
+	err := local.Store.PutBatchLinksArray(context.Background(), putData, successUserID)
 	require.NoError(t, err)
 
 	type want struct {

@@ -1,6 +1,7 @@
 package handlers
 
 import (
+	"context"
 	"io"
 	"net/http"
 	"net/http/httptest"
@@ -128,7 +129,7 @@ func Test_encodeLinkByUnique(t *testing.T) {
 		link := "https://cloud.ru"
 		userID := 3
 
-		err = store.PutLink(link, "uweyiu", userID)
+		err = store.PutLink(context.Background(), link, "uweyiu", userID)
 		assert.NoError(t, err)
 
 		request := httptest.NewRequest(http.MethodPost, "/", strings.NewReader(link))
@@ -205,10 +206,10 @@ func Test_decodeLinkHeader(t *testing.T) {
 				store, err := storage.GetStore()
 				assert.NoError(t, err)
 
-				err = store.PutLink("http://test.link", "jsdhkahs", 3)
+				err = store.PutLink(context.Background(), "http://test.link", "jsdhkahs", 3)
 				assert.NoError(t, err)
 
-				err = store.DeleteBatchLinksArray([]string{"jsdhkahs"}, 3)
+				err = store.DeleteBatchLinksArray(context.Background(), []string{"jsdhkahs"}, 3)
 				assert.NoError(t, err)
 			}
 

@@ -1,6 +1,7 @@
 package local
 
 import (
+	"context"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -13,7 +14,7 @@ func TestStore_PutLink(t *testing.T) {
 		Store.store = make(map[string]linkEntity)
 		assert.Equal(t, 0, len(Store.store))
 
-		err := Store.PutLink(putLink.originalURL, putLink.shortLink, putLink.userID)
+		err := Store.PutLink(context.Background(), putLink.originalURL, putLink.shortLink, putLink.userID)
 		assert.NoError(t, err)
 
 		assert.Equal(t, 1, len(Store.store))
@@ -32,7 +33,7 @@ func TestStore_PutBatchLinksArray(t *testing.T) {
 
 		putData := map[string]string{"dshdgj": "http://rambler.ru", "xnmbsd": "http://yandex.ru"}
 
-		err := Store.PutBatchLinksArray(putData, 1)
+		err := Store.PutBatchLinksArray(context.Background(), putData, 1)
 		assert.NoError(t, err)
 		assert.Equal(t, 2, len(Store.store))
 
@@ -48,12 +49,12 @@ func TestStore_GetLink(t *testing.T) {
 	t.Run("тест получения ссылки из store", func(t *testing.T) {
 		Store.store = map[string]linkEntity{"dshdgj": {shortLink: "dshdgj", originalURL: "http://rambler.ru", userID: 1, isDeleted: true}}
 
-		link, isDeleted, err := Store.GetLink("xnmbsd")
+		link, isDeleted, err := Store.GetLink(context.Background(), "xnmbsd")
 		assert.Error(t, err)
 		assert.Empty(t, link)
 		assert.False(t, isDeleted)
 
-		link, isDeleted, err = Store.GetLink("dshdgj")
+		link, isDeleted, err = Store.GetLink(context.Background(), "dshdgj")
 		assert.NoError(t, err)
 		assert.Equal(t, "http://rambler.ru", link)
 		assert.True(t, isDeleted)
@@ -64,11 +65,11 @@ func TestStore_HasShort(t *testing.T) {
 	t.Run("тест проверки наличия короткой ссылки в хранилище", func(t *testing.T) {
 		Store.store = map[string]linkEntity{"dshdgj": {shortLink: "dshdgj", originalURL: "http://rambler.ru", userID: 1, isDeleted: false}}
 
-		exists, err := Store.HasShort("jsdhjkj")
+		exists, err := Store.HasShort(context.Background(), "jsdhjkj")
 		assert.NoError(t, err)
 		assert.False(t, exists)
 
-		exists, err = Store.HasShort("dshdgj")
+		exists, err = Store.HasShort(context.Background(), "dshdgj")
 		assert.NoError(t, err)
 		assert.True(t, exists)
 	})
@@ -79,11 +80,11 @@ func TestStore_GetShort(t *testing.T) {
 		Store.store = map[string]linkEntity{"dshdgj": {shortLink: "dshdgj", originalURL: "http://rambler.ru", userID: 1, isDeleted: false}}
 		assert.Equal(t, 1, len(Store.store))
 
-		short, err := Store.GetShort("http://yandex.ru")
+		short, err := Store.GetShort(context.Background(), "http://yandex.ru")
 		assert.Error(t, err)
 		assert.Empty(t, short)
 
-		short, err = Store.GetShort("http://rambler.ru")
+		short, err = Store.GetShort(context.Background(), "http://rambler.ru")
 		assert.NoError(t, err)
 		assert.Equal(t, "dshdgj", short)
 	})
@@ -101,15 +102,15 @@ func TestStore_GetUserLinks(t *testing.T) {
 
 		assert.Equal(t, 5, len(Store.store))
 
-		res, err := Store.GetUserLinks(23)
+		res, err := Store.GetUserLinks(context.Background(), 23)
 		assert.NoError(t, err)
 		assert.Equal(t, 0, len(res))
 
-		res, err = Store.GetUserLinks(1)
+		res, err = Store.GetUserLinks(context.Background(), 1)
 		assert.NoError(t, err)
 		assert.Equal(t, 3, len(res))
 
-		res, err = Store.GetUserLinks(7)
+		res, err = Store.GetUserLinks(context.Background(), 7)
 		assert.NoError(t, err)
 		assert.Equal(t, 2, len(res))
 
@@ -129,7 +130,7 @@ func TestStore_DeleteBatchLinksArray(t *testing.T) {
 		var shorts []string
 		shorts = append(shorts, "mnbnvcx", "hjhgsdf", "nbvcxz")
 
-		err := Store.DeleteBatchLinksArray(shorts, 7)
+		err := Store.DeleteBatchLinksArray(context.Background(), shorts, 7)
 		assert.NoError(t, err)
 
 		data, ok := Store.store["mnbnvcx"]
