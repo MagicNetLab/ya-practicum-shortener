@@ -42,7 +42,7 @@ func encodeHandler() http.HandlerFunc {
 		}
 
 		c := config.GetParams()
-		short, status := getShortLink(string(link), userID)
+		short, status := getShortLink(r.Context(), string(link), userID)
 		w.Header().Set("content-type", "text/plain")
 		w.WriteHeader(status)
 		w.Write([]byte(fmt.Sprintf("http://%s/%s", c.GetShortHost(), short)))
@@ -64,7 +64,7 @@ func decodeHandler() http.HandlerFunc {
 			http.Error(w, "Internal Server Error", http.StatusInternalServerError)
 		}
 
-		link, isDeleted, err := store.GetLink(short)
+		link, isDeleted, err := store.GetLink(r.Context(), short)
 		if err != nil {
 			http.Error(w, http.StatusText(http.StatusNotFound), http.StatusNotFound)
 			return

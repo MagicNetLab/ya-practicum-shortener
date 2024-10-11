@@ -41,7 +41,7 @@ func apiEncodeHandler() http.HandlerFunc {
 
 		c := config.GetParams()
 		apiResult := APIResponse{Result: ""}
-		short, status := getShortLink(shortRequest.URL, userID)
+		short, status := getShortLink(r.Context(), shortRequest.URL, userID)
 		apiResult.Result = "http://" + c.GetShortHost() + "/" + short
 		w.Header().Set("content-type", "application/json")
 		w.WriteHeader(status)
@@ -95,7 +95,7 @@ func apiBatchEncodeHandler() http.HandlerFunc {
 			response = append(response, row)
 		}
 
-		err = store.PutBatchLinksArray(storeData, userID)
+		err = store.PutBatchLinksArray(r.Context(), storeData, userID)
 		if err != nil {
 			if errors.Is(err, postgres.ErrLinkUniqueConflict) {
 				http.Error(w, "Conflict: one or more links are not unique", http.StatusConflict)
@@ -139,7 +139,7 @@ func apiListUserLinksHandler() http.HandlerFunc {
 			return
 		}
 
-		res, err := store.GetUserLinks(userID)
+		res, err := store.GetUserLinks(r.Context(), userID)
 		if err != nil {
 			args := map[string]interface{}{"error": err.Error()}
 			logger.Error("failed get user links", args)
@@ -197,7 +197,7 @@ func deleteUserLinksHandler() http.HandlerFunc {
 			return
 		}
 
-		go batchDeleteLinks(deleteRequest, userID)
+		go batchDeleteLinks(r.Context(), deleteRequest, userID)
 
 		w.Header().Set("content-type", "application/json")
 		w.WriteHeader(http.StatusAccepted)

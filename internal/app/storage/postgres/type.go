@@ -89,10 +89,7 @@ func (s *store) Init() error {
 }
 
 // PutLink сохранение ссылки пользователя в БД
-func (s *store) PutLink(link string, short string, userID int) error {
-	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
-	defer cancel()
-
+func (s *store) PutLink(ctx context.Context, link string, short string, userID int) error {
 	conn, err := pgx.Connect(ctx, s.connectString)
 	if err != nil {
 		return errors.New("database connection error: " + err.Error())
@@ -115,11 +112,7 @@ func (s *store) PutLink(link string, short string, userID int) error {
 }
 
 // PutBatchLinksArray пакетное сохранение ссылок пользователя в БД
-func (s *store) PutBatchLinksArray(StoreBatchLicksArray map[string]string, userID int) error {
-	// TODO use prepare statement
-	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
-	defer cancel()
-
+func (s *store) PutBatchLinksArray(ctx context.Context, StoreBatchLicksArray map[string]string, userID int) error {
 	conn, err := pgx.Connect(ctx, s.connectString)
 	if err != nil {
 		return errors.New("database connection error: " + err.Error())
@@ -157,10 +150,7 @@ func (s *store) PutBatchLinksArray(StoreBatchLicksArray map[string]string, userI
 }
 
 // GetLink получение оригинальной ссылки из БД по сокращенному хэшу
-func (s *store) GetLink(short string) (string, bool, error) {
-	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
-	defer cancel()
-
+func (s *store) GetLink(ctx context.Context, short string) (string, bool, error) {
 	conn, err := pgx.Connect(ctx, s.connectString)
 	if err != nil {
 		return "", false, errors.New("database connection error: " + err.Error())
@@ -178,10 +168,7 @@ func (s *store) GetLink(short string) (string, bool, error) {
 }
 
 // HasShort проверка наличия короткой ссылки в БД
-func (s *store) HasShort(short string) (bool, error) {
-	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
-	defer cancel()
-
+func (s *store) HasShort(ctx context.Context, short string) (bool, error) {
 	conn, err := pgx.Connect(ctx, s.connectString)
 	if err != nil {
 		return false, errors.New("database connection error: " + err.Error())
@@ -202,8 +189,7 @@ func (s *store) HasShort(short string) (bool, error) {
 }
 
 // GetShort получение сокращенного хэша для ссылки из БД
-func (s *store) GetShort(link string) (string, error) {
-	ctx := context.Background()
+func (s *store) GetShort(ctx context.Context, link string) (string, error) {
 	conn, err := pgx.Connect(ctx, s.connectString)
 	if err != nil {
 		return "", errors.New("database connection error: " + err.Error())
@@ -221,10 +207,7 @@ func (s *store) GetShort(link string) (string, error) {
 }
 
 // GetUserLinks получение всех ссылок пользователя из БД
-func (s *store) GetUserLinks(userID int) (map[string]string, error) {
-	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
-	defer cancel()
-
+func (s *store) GetUserLinks(ctx context.Context, userID int) (map[string]string, error) {
 	conn, err := pgx.Connect(ctx, s.connectString)
 	if err != nil {
 		return nil, errors.New("database connection error: " + err.Error())
@@ -257,9 +240,7 @@ func (s *store) GetUserLinks(userID int) (map[string]string, error) {
 }
 
 // DeleteBatchLinksArray пакетное удаление ссылок пользователя
-func (s *store) DeleteBatchLinksArray(shorts []string, userID int) error {
-	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
-	defer cancel()
+func (s *store) DeleteBatchLinksArray(ctx context.Context, shorts []string, userID int) error {
 	conn, err := pgx.Connect(ctx, s.connectString)
 	if err != nil {
 		return errors.New("database connection error: " + err.Error())

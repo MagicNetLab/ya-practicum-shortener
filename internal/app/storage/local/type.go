@@ -2,6 +2,7 @@ package local
 
 import (
 	"bufio"
+	"context"
 	"encoding/json"
 	"errors"
 	"fmt"
@@ -122,7 +123,7 @@ type store struct {
 }
 
 // PutLink сохранение ссылки в память и кэш
-func (s *store) PutLink(link string, short string, userID int) error {
+func (s *store) PutLink(ctx context.Context, link string, short string, userID int) error {
 	if link == "" || short == "" {
 		args := map[string]interface{}{"link": link, "short": short}
 		logger.Error("failed store link: empty link or short", args)
@@ -145,7 +146,7 @@ func (s *store) PutLink(link string, short string, userID int) error {
 }
 
 // PutBatchLinksArray пакетное сохранение ссылок в память и кэш
-func (s *store) PutBatchLinksArray(StoreBatchLinksArray map[string]string, userID int) error {
+func (s *store) PutBatchLinksArray(ctx context.Context, StoreBatchLinksArray map[string]string, userID int) error {
 	rollback := false
 
 	for short, link := range StoreBatchLinksArray {
@@ -154,7 +155,7 @@ func (s *store) PutBatchLinksArray(StoreBatchLinksArray map[string]string, userI
 			break
 		}
 
-		err := s.PutLink(link, short, userID)
+		err := s.PutLink(ctx, link, short, userID)
 		if err != nil {
 			rollback = true
 			break
@@ -173,7 +174,7 @@ func (s *store) PutBatchLinksArray(StoreBatchLinksArray map[string]string, userI
 }
 
 // GetLink получение ссылки по короткому коду из хранилища в памяти
-func (s *store) GetLink(short string) (string, bool, error) {
+func (s *store) GetLink(ctx context.Context, short string) (string, bool, error) {
 	link, ok := s.store[short]
 	if ok {
 		return link.originalURL, link.isDeleted, nil
@@ -183,14 +184,14 @@ func (s *store) GetLink(short string) (string, bool, error) {
 }
 
 // HasShort проверка наличия короткого кода ссылки в хранилище в памяти
-func (s *store) HasShort(short string) (bool, error) {
+func (s *store) HasShort(ctx context.Context, short string) (bool, error) {
 	_, ok := s.store[short]
 
 	return ok, nil
 }
 
 // GetShort получение ссылки по короткому коду из хранилища в памяти
-func (s *store) GetShort(link string) (string, error) {
+func (s *store) GetShort(ctx context.Context, link string) (string, error) {
 	for k, v := range s.store {
 		if v.originalURL == link {
 			return k, nil
@@ -200,7 +201,7 @@ func (s *store) GetShort(link string) (string, error) {
 }
 
 // GetUserLinks получение всех ссылок пользователя из хранилища в памяти
-func (s *store) GetUserLinks(userID int) (map[string]string, error) {
+func (s *store) GetUserLinks(ctx context.Context, userID int) (map[string]string, error) {
 	result := make(map[string]string)
 	for _, v := range s.store {
 		if v.userID == userID {
@@ -211,7 +212,7 @@ func (s *store) GetUserLinks(userID int) (map[string]string, error) {
 }
 
 // DeleteBatchLinksArray пакетное удаление ссылок пользователя из хранилища в памяти и кэше
-func (s *store) DeleteBatchLinksArray(shorts []string, userID int) error {
+func (s *store) DeleteBatchLinksArray(ctx context.Context, shorts []string, userID int) error {
 	// todo подумать как малой кровью поменять данные в кэш файле
 	for _, short := range shorts {
 		data, ok := s.store[short]
