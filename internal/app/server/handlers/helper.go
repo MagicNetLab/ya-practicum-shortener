@@ -1,36 +1,42 @@
 package handlers
 
 import (
+	"context"
 	"errors"
 	"fmt"
 	"net/http"
 	"sync"
 	"time"
 
+	"github.com/golang-jwt/jwt/v4"
+
 	"github.com/MagicNetLab/ya-practicum-shortener/internal/app/shortgen"
 	"github.com/MagicNetLab/ya-practicum-shortener/internal/app/storage"
+	"github.com/MagicNetLab/ya-practicum-shortener/internal/app/storage/local"
 	"github.com/MagicNetLab/ya-practicum-shortener/internal/app/storage/postgres"
 	"github.com/MagicNetLab/ya-practicum-shortener/internal/config"
 	"github.com/MagicNetLab/ya-practicum-shortener/internal/service/jwttoken"
 	"github.com/MagicNetLab/ya-practicum-shortener/internal/service/logger"
-	"github.com/golang-jwt/jwt/v4"
 )
 
-func getShortLink(url string, userID int) (short string, httpResponseStatus int) {
+func getShortLink(ctx context.Context, url string, userID int) (short string, httpResponseStatus int) {
 	store, err := storage.GetStore()
 	if err != nil {
-		logger.Log.Errorf("Error init storage: %v", err)
+		args := map[string]interface{}{"error": err.Error()}
+		logger.Error("error initializing storage", args)
 		return "", http.StatusInternalServerError
 	}
 
 	short = shortgen.GetShortLink(7)
 	httpResponseStatus = http.StatusCreated
-	err = store.PutLink(url, short, userID)
+	err = store.PutLink(ctx, url, short, userID)
 	if err != nil {
 		httpResponseStatus = http.StatusInternalServerError
-		logger.Log.Errorf("Error putting short link: %v", err)
-		if errors.Is(err, postgres.ErrLinkUniqueConflict) {
-			short, err = store.GetShort(url)
+		args := map[string]interface{}{"error": err.Error()}
+		logger.Error("error storing short link", args)
+		notUniqueError := errors.Is(err, postgres.ErrLinkUniqueConflict) || errors.Is(err, local.ErrorLinkNotUnique)
+		if notUniqueError {
+			short, err = store.GetShort(ctx, url)
 			if err == nil {
 				httpResponseStatus = http.StatusConflict
 			}
@@ -76,7 +82,7 @@ func parseCookie(r *http.Request) (int, error) {
 	return userID, nil
 }
 
-func batchDeleteLinks(shorts []string, userID int) {
+func batchDeleteLinks(ctx context.Context, shorts []string, userID int) {
 	doneCh := make(chan struct{})
 	defer close(doneCh)
 
@@ -131,12 +137,16 @@ func deleteLinks(shorts []string, userID int) {
 
 	store, err := storage.GetStore()
 	if err != nil {
-		logger.Log.Errorf("Error init storage: %v", err)
+		args := map[string]interface{}{"error": err.Error()}
+		logger.Error("error initializing storage", args)
 		return
 	}
 
-	err = store.DeleteBatchLinksArray(shorts, userID)
+	ctx, cancel := context.WithTimeout(context.Background(), time.Second*3)
+	defer cancel()
+	err = store.DeleteBatchLinksArray(ctx, shorts, userID)
 	if err != nil {
-		logger.Log.Errorf("Error deleting short links: %v", err)
+		args := map[string]interface{}{"error": err.Error()}
+		logger.Error("error deleting short links", args)
 	}
 }

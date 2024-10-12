@@ -5,19 +5,22 @@ import (
 	"net/http"
 	"time"
 
+	"github.com/golang-jwt/jwt/v4"
+
 	"github.com/MagicNetLab/ya-practicum-shortener/internal/config"
 	"github.com/MagicNetLab/ya-practicum-shortener/internal/service/logger"
 	"github.com/MagicNetLab/ya-practicum-shortener/internal/service/user"
-	"github.com/golang-jwt/jwt/v4"
 )
 
+// CheckAuthMiddleware миддлвара для проверки авторизации пользователя.
 func CheckAuthMiddleware(h http.HandlerFunc) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		appConfig := config.GetParams()
 		claims := &Claims{}
 		cookie, err := r.Cookie("token")
 		if err != nil {
-			logger.Log.Errorf("Cookie err: %v", err)
+			args := map[string]interface{}{"error": err.Error()}
+			logger.Error("failed get token from cookie", args)
 			http.Error(w, "Unauthorized", http.StatusUnauthorized)
 			return
 		}
@@ -32,13 +35,14 @@ func CheckAuthMiddleware(h http.HandlerFunc) http.HandlerFunc {
 			})
 
 		if err != nil {
-			logger.Log.Infof("failed to parse token: %v", err)
+			args := map[string]interface{}{"error": err.Error()}
+			logger.Info("failed to parse token", args)
 			http.Error(w, "Unauthorized", http.StatusUnauthorized)
 			return
 		}
 
 		if !token.Valid || claims.UserID == 0 {
-			logger.Log.Infof("invalid token")
+			logger.Error("invalid token", nil)
 			http.Error(w, "Unauthorized", http.StatusUnauthorized)
 			return
 		}
@@ -46,6 +50,8 @@ func CheckAuthMiddleware(h http.HandlerFunc) http.HandlerFunc {
 	}
 }
 
+// TokenMiddleware миддлвара для установки токена пользователя.
+// Тестовый вариант пока нет методов для регистрации и авторизации.
 func TokenMiddleware(h http.HandlerFunc) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		appConfig := config.GetParams()
@@ -54,7 +60,8 @@ func TokenMiddleware(h http.HandlerFunc) http.HandlerFunc {
 			u := user.Create()
 			token, err := GenerateToken(u.ID, appConfig.GetJWTSecret())
 			if err != nil {
-				logger.Log.Errorf("failed to generate token: %v", err)
+				args := map[string]interface{}{"error": err.Error()}
+				logger.Error("failed to generate token", args)
 				http.Error(w, "Internal Server Error", http.StatusInternalServerError)
 				return
 			}

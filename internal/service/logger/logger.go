@@ -1,48 +1,58 @@
 package logger
 
 import (
+	"os"
+
 	"go.uber.org/zap"
-	"net/http"
-	"time"
+	"go.uber.org/zap/zapcore"
 )
 
-// Log TODO структурированное логгирование
+var log = Logger{log: zap.NewNop()}
 
-var Log *zap.SugaredLogger = zap.NewNop().Sugar()
-
+// Initialize инициализация логера
 func Initialize() error {
-	zl, err := zap.NewProduction()
-	if err != nil {
-		return err
+	encoderConfig := zapcore.EncoderConfig{
+		TimeKey:        "timestamp",
+		LevelKey:       "level",
+		NameKey:        "logger",
+		CallerKey:      "caller",
+		MessageKey:     "message",
+		StacktraceKey:  "stacktrace",
+		LineEnding:     zapcore.DefaultLineEnding,
+		EncodeLevel:    zapcore.CapitalLevelEncoder,
+		EncodeTime:     zapcore.ISO8601TimeEncoder,
+		EncodeDuration: zapcore.SecondsDurationEncoder,
+		EncodeCaller:   zapcore.ShortCallerEncoder,
 	}
 
-	Log = zl.Sugar()
+	core := zapcore.NewCore(
+		zapcore.NewJSONEncoder(encoderConfig),
+		zapcore.NewMultiWriteSyncer(zapcore.AddSync(os.Stdout)),
+		zap.InfoLevel,
+	)
+
+	logger := zap.New(core)
+	log = Logger{log: logger}
+
 	return nil
 }
 
-func Middleware(h http.HandlerFunc) http.HandlerFunc {
-	return func(w http.ResponseWriter, r *http.Request) {
-		start := time.Now()
+// Info отправка информационного сообщения в логи
+func Info(msg string, args map[string]interface{}) {
+	log.Info(msg, args)
+}
 
-		responseData := &ResponseData{
-			Status: 0,
-			Size:   0,
-		}
-		lw := loggingResponseWriter{
-			ResponseWriter: w,
-			responseData:   responseData,
-		}
+// Error отправка сообщения об ошибке в логи
+func Error(msg string, args map[string]interface{}) {
+	log.Error(msg, args)
+}
 
-		h.ServeHTTP(&lw, r)
+// Fatal отправка сообщения об ошибке в логи и завершение работы приложения
+func Fatal(msg string, args map[string]interface{}) {
+	log.Fatal(msg, args)
+}
 
-		duration := time.Since(start)
-
-		Log.Infoln(
-			"uri", r.RequestURI,
-			"method", r.Method,
-			"status", responseData.Status,
-			"duration", duration,
-			"size", responseData.Size,
-		)
-	}
+// Sync сброс закэшированных данных в логи
+func Sync() {
+	log.log.Sync()
 }

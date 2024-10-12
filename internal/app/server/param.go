@@ -7,11 +7,10 @@ import (
 )
 
 type configurator interface {
-	SetDefaultHost(host string, port string) error
-	SetShortHost(host string, port string) error
 	GetDefaultHost() string
 	GetShortHost() string
 	IsValid() bool
+	GetPProfHost() string
 }
 
 type route struct {
@@ -22,7 +21,7 @@ type route struct {
 
 type listeners map[string]chi.Router
 
-func (l listeners) Append(host string, route route) {
+func (l listeners) append(host string, route route) {
 	var r chi.Router
 	if _, ok := l[host]; !ok {
 		r = chi.NewRouter()

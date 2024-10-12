@@ -7,13 +7,14 @@ import (
 	"github.com/MagicNetLab/ya-practicum-shortener/internal/service/logger"
 )
 
-var storageList = map[string]LinkStore{
+var storageList = map[string]Storer{
 	"local":    &local.Store,
 	"postgres": &postgres.Store,
 }
 
-func GetStore() (LinkStore, error) {
-	var store LinkStore
+// GetStore получение объекта хранилища согласно настройкам приложения
+func GetStore() (Storer, error) {
+	var store Storer
 	appConfig := config.GetParams()
 	if appConfig.GetDBConnectString() != "" {
 		store = storageList["postgres"]
@@ -23,10 +24,10 @@ func GetStore() (LinkStore, error) {
 
 	err := store.Init()
 	if err != nil {
-		logger.Log.Infof("Storage init error: %s", err.Error())
+		args := map[string]interface{}{"error": err.Error()}
+		logger.Error("Storage init error: %s", args)
 		//return nil, err
 	}
 
 	return store, nil
-
 }

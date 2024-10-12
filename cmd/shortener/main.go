@@ -2,6 +2,7 @@ package main
 
 import (
 	"log"
+	_ "net/http/pprof"
 
 	"github.com/MagicNetLab/ya-practicum-shortener/internal/app/server"
 	"github.com/MagicNetLab/ya-practicum-shortener/internal/app/storage"
@@ -14,16 +15,18 @@ func main() {
 	if err != nil {
 		log.Fatalf("Failed to initialize logger: %v", err)
 	}
+	defer logger.Sync()
 
 	conf := config.GetParams()
 	if !conf.IsValid() {
-		logger.Log.Fatalln("Invalid server parameters. App is not running.")
+		logger.Fatal("Invalid server parameters. App is not running.", nil)
 		return
 	}
 
 	_, err = storage.GetStore()
 	if err != nil {
-		logger.Log.Fatalf("Failed to initialize storage: %v", err)
+		args := map[string]interface{}{"error": err.Error()}
+		logger.Fatal("Failed to initialize storage", args)
 	}
 
 	server.Run(conf)

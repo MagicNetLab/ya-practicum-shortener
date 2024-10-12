@@ -4,11 +4,11 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"github.com/MagicNetLab/ya-practicum-shortener/internal/app/storage/postgres"
 	"net/http"
 
 	"github.com/MagicNetLab/ya-practicum-shortener/internal/app/shortgen"
 	"github.com/MagicNetLab/ya-practicum-shortener/internal/app/storage"
+	"github.com/MagicNetLab/ya-practicum-shortener/internal/app/storage/postgres"
 	"github.com/MagicNetLab/ya-practicum-shortener/internal/config"
 	"github.com/MagicNetLab/ya-practicum-shortener/internal/service/logger"
 )
@@ -22,7 +22,8 @@ func apiEncodeHandler() http.HandlerFunc {
 
 		userID, err := parseCookie(r)
 		if err != nil {
-			logger.Log.Errorf("failed get user_id from cookie: %v", err)
+			args := map[string]interface{}{"error": err.Error()}
+			logger.Error("failed get user_id from cookie", args)
 			http.Error(w, "incorrect user token", http.StatusBadRequest)
 			return
 		}
@@ -33,9 +34,14 @@ func apiEncodeHandler() http.HandlerFunc {
 			return
 		}
 
+		if shortRequest.URL == "" {
+			http.Error(w, "Missing link", http.StatusBadRequest)
+			return
+		}
+
 		c := config.GetParams()
 		apiResult := APIResponse{Result: ""}
-		short, status := getShortLink(shortRequest.URL, userID)
+		short, status := getShortLink(r.Context(), shortRequest.URL, userID)
 		apiResult.Result = "http://" + c.GetShortHost() + "/" + short
 		w.Header().Set("content-type", "application/json")
 		w.WriteHeader(status)
@@ -54,21 +60,24 @@ func apiBatchEncodeHandler() http.HandlerFunc {
 
 		userID, err := parseCookie(r)
 		if err != nil {
-			logger.Log.Errorf("failed get user_id from cookie: %v", err)
+			args := map[string]interface{}{"error": err.Error()}
+			logger.Error("failed get user_id from cookie", args)
 			http.Error(w, "incorrect user token", http.StatusBadRequest)
 			return
 		}
 
 		var batchRequest APIBatchRequest
 		if err := json.NewDecoder(r.Body).Decode(&batchRequest); err != nil {
-			logger.Log.Errorf("Failed to decode batch request: %v", err)
+			args := map[string]interface{}{"error": err.Error()}
+			logger.Error("failed to decode batch request", args)
 			http.Error(w, "Missing link", http.StatusBadRequest)
 			return
 		}
 
 		store, err := storage.GetStore()
 		if err != nil {
-			logger.Log.Errorf("Failed to get store: %v", err)
+			args := map[string]interface{}{"error": err.Error()}
+			logger.Error("failed to get store", args)
 			http.Error(w, "Internal Server Error", http.StatusInternalServerError)
 			return
 		}
@@ -86,14 +95,15 @@ func apiBatchEncodeHandler() http.HandlerFunc {
 			response = append(response, row)
 		}
 
-		err = store.PutBatchLinksArray(storeData, userID)
+		err = store.PutBatchLinksArray(r.Context(), storeData, userID)
 		if err != nil {
 			if errors.Is(err, postgres.ErrLinkUniqueConflict) {
 				http.Error(w, "Conflict: one or more links are not unique", http.StatusConflict)
 				return
 			}
 
-			logger.Log.Errorf("Failed to put batch links: %v", err)
+			args := map[string]interface{}{"error": err.Error()}
+			logger.Error("failed put batch links", args)
 			http.Error(w, "Internal Server Error", http.StatusInternalServerError)
 			return
 		}
@@ -115,21 +125,24 @@ func apiListUserLinksHandler() http.HandlerFunc {
 
 		userID, err := parseCookie(r)
 		if err != nil {
-			logger.Log.Errorf("failed get user_id from cookie: %v", err)
+			args := map[string]interface{}{"error": err.Error()}
+			logger.Error("failed get user_id from cookie", args)
 			http.Error(w, "unauthorized", http.StatusUnauthorized)
 			return
 		}
 
 		store, err := storage.GetStore()
 		if err != nil {
-			logger.Log.Errorf("Failed to get store: %v", err)
+			args := map[string]interface{}{"error": err.Error()}
+			logger.Error("failed to get store", args)
 			http.Error(w, "Internal Server Error", http.StatusInternalServerError)
 			return
 		}
 
-		res, err := store.GetUserLinks(userID)
+		res, err := store.GetUserLinks(r.Context(), userID)
 		if err != nil {
-			logger.Log.Errorf("Failed to get user links: %v", err)
+			args := map[string]interface{}{"error": err.Error()}
+			logger.Error("failed get user links", args)
 			http.Error(w, "Internal Server Error", http.StatusInternalServerError)
 			return
 		}
@@ -170,19 +183,21 @@ func deleteUserLinksHandler() http.HandlerFunc {
 
 		userID, err := parseCookie(r)
 		if err != nil {
-			logger.Log.Errorf("failed get user_id from cookie: %v", err)
+			args := map[string]interface{}{"error": err.Error()}
+			logger.Error("failed get user_id from cookie", args)
 			http.Error(w, "incorrect user token", http.StatusBadRequest)
 			return
 		}
 
 		var deleteRequest APIDeleteRequest
 		if err := json.NewDecoder(r.Body).Decode(&deleteRequest); err != nil {
-			logger.Log.Errorf("Failed to decode delete request: %v", err)
+			args := map[string]interface{}{"error": err.Error()}
+			logger.Error("failed to decode delete request", args)
 			http.Error(w, "Incorrect request data", http.StatusBadRequest)
 			return
 		}
 
-		go batchDeleteLinks(deleteRequest, userID)
+		go batchDeleteLinks(r.Context(), deleteRequest, userID)
 
 		w.Header().Set("content-type", "application/json")
 		w.WriteHeader(http.StatusAccepted)

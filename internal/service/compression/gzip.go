@@ -7,38 +7,11 @@ import (
 	"strings"
 )
 
-type gzipWriter struct {
-	w  http.ResponseWriter
-	zw *gzip.Writer
-}
-
 func newGzipWriter(w http.ResponseWriter) *gzipWriter {
 	return &gzipWriter{
 		w:  w,
 		zw: gzip.NewWriter(w),
 	}
-}
-
-func (c *gzipWriter) Header() http.Header {
-	return c.w.Header()
-}
-
-func (c *gzipWriter) Write(p []byte) (int, error) {
-	return c.zw.Write(p)
-}
-
-func (c *gzipWriter) WriteHeader(statusCode int) {
-	c.w.Header().Set("Content-Encoding", "gzip")
-	c.w.WriteHeader(statusCode)
-}
-
-func (c *gzipWriter) Close() error {
-	return c.zw.Close()
-}
-
-type gzipReader struct {
-	r  io.ReadCloser
-	zr *gzip.Reader
 }
 
 func newGzipReader(r io.ReadCloser) (*gzipReader, error) {
@@ -53,17 +26,7 @@ func newGzipReader(r io.ReadCloser) (*gzipReader, error) {
 	}, nil
 }
 
-func (c gzipReader) Read(p []byte) (n int, err error) {
-	return c.zr.Read(p)
-}
-
-func (c *gzipReader) Close() error {
-	if err := c.r.Close(); err != nil {
-		return err
-	}
-	return c.zr.Close()
-}
-
+// GzipMiddleware миддлвара для работы со сжатыми данными
 func GzipMiddleware(h http.HandlerFunc) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		ow := w
