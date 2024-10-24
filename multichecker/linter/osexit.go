@@ -8,6 +8,7 @@ import (
 	"golang.org/x/tools/go/ast/inspector"
 )
 
+// ExitInMainAnalyzer анализатор вызова os.Exit в main
 var ExitInMainAnalyzer = &analysis.Analyzer{
 	Name:     "exitinmain",
 	Doc:      "check for os.Exit call in func main in package main",
