@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	"log"
 	_ "net/http/pprof"
 
@@ -10,7 +11,17 @@ import (
 	"github.com/MagicNetLab/ya-practicum-shortener/internal/service/logger"
 )
 
+var (
+	buildVersion string = "N/A"
+	buildDate    string = "N/A"
+	buildCommit  string = "N/A"
+)
+
 func main() {
+	fmt.Printf("Build version: %s\n", buildVersion)
+	fmt.Printf("Build date: %s\n", buildDate)
+	fmt.Printf("Build commit: %s\n", buildCommit)
+
 	err := logger.Initialize()
 	if err != nil {
 		log.Fatalf("Failed to initialize logger: %v", err)
