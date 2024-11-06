@@ -1,6 +1,7 @@
 package env
 
 import (
+	"log"
 	"os"
 	"strings"
 
@@ -20,11 +21,13 @@ func Parse() (Configurator, error) {
 	}
 
 	baseHost := os.Getenv("SERVER_ADDRESS")
+	log.Println(baseHost)
 	if baseHost != "" && strings.Contains(baseHost, ":") {
 		envConf.baseHost = strings.Split(baseHost, ":")
 	}
 
 	shortHost := os.Getenv("BASE_URL")
+	log.Println(shortHost)
 	if shortHost != "" && strings.Contains(shortHost, ":") {
 		envConf.shortHost = strings.Split(shortHost, ":")
 	}
