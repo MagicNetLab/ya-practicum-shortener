@@ -2,6 +2,7 @@ package env
 
 import "errors"
 
+// Configurator параметры приложения собранные из переменных окружения
 type Configurator struct {
 	baseHost        []string `env:"SERVER_ADDRESS" envSeparator:":"`
 	shortHost       []string `env:"BASE_URL" envSeparator:":"`
@@ -81,6 +82,7 @@ func (c Configurator) GetIsEnableHTTPS() bool {
 	return c.enableHTTPS
 }
 
+// HasEnableHTTPS возвращает был ли установлен параметр enableHTTPS
 func (c Configurator) HasEnableHTTPS() bool {
 	return true
 }

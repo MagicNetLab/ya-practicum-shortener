@@ -12,6 +12,7 @@ const (
 	enableHTTPSKey  = "s"
 )
 
+// CliConf параметры приложения собранные из флагов указанных при запуске
 type CliConf struct {
 	defaultHost     string
 	defaultPort     string
