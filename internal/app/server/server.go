@@ -11,6 +11,12 @@ import (
 
 // Run запуск сервера
 func Run(configurator configurator) {
+	args := map[string]interface{}{
+		"defaultHost": configurator.GetDefaultHost(),
+		"shortHost":   configurator.GetShortHost(),
+	}
+	logger.Info("Starting server on hosts", args)
+
 	if configurator.IsEnableHTTPS() {
 		runHTTPSServer(configurator)
 	} else {
