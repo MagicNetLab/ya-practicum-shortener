@@ -11,27 +11,11 @@ import (
 
 // Run запуск сервера
 func Run(configurator configurator) {
-	listen := getListeners()
-
-	for h, l := range listen {
-		h := h
-		l := l
-		go func() { log.Fatal(http.ListenAndServe(h, l)) }()
-
-		args := map[string]interface{}{"url": h}
-		logger.Info("listener starting", args)
+	if configurator.IsEnableHTTPS() {
+		runHTTPSServer(configurator)
+	} else {
+		runHTTPServer(configurator)
 	}
-
-	if pprofHost := configurator.GetPProfHost(); pprofHost != "" {
-		go func() {
-			log.Println(http.ListenAndServe(pprofHost, nil))
-		}()
-
-		args := map[string]interface{}{"url": pprofHost}
-		logger.Info("pprof starting", args)
-	}
-
-	select {}
 }
 
 func getListeners() listeners {
@@ -45,4 +29,67 @@ func getListeners() listeners {
 		})
 	}
 	return l
+}
+
+func runHTTPServer(configurator configurator) {
+	listen := getListeners()
+
+	for h, l := range listen {
+		h := h
+		l := l
+		go func() { log.Fatal(http.ListenAndServe(h, l)) }()
+
+		args := map[string]interface{}{"url": "http://" + h}
+		logger.Info("listener starting", args)
+	}
+
+	if pprofHost := configurator.GetPProfHost(); pprofHost != "" {
+		go func() {
+			log.Println(http.ListenAndServe(pprofHost, nil))
+		}()
+
+		args := map[string]interface{}{"url": "http://" + pprofHost}
+		logger.Info("pprof starting", args)
+	}
+
+	select {}
+}
+
+func runHTTPSServer(configurator configurator) {
+	const (
+		certFileName = "cert.pem"
+		keyFileName  = "key.pem"
+	)
+
+	if !hasTLSCertsExists(certFileName, keyFileName) {
+		err := createTLSCerts(certFileName, keyFileName)
+		if err != nil {
+			params := map[string]interface{}{"error": err}
+			logger.Fatal("error creating tls certs", params)
+		}
+	}
+
+	handlers := getListeners()
+	for key, value := range handlers {
+		host := key
+		handler := value
+		go func() {
+			log.Fatal(http.ListenAndServeTLS(host, certFileName, keyFileName, handler))
+		}()
+
+		args := map[string]interface{}{"url": "https://" + host}
+		logger.Info("listener starting", args)
+	}
+
+	if pprofHost := configurator.GetPProfHost(); pprofHost != "" {
+		go func() {
+			log.Println(http.ListenAndServeTLS(pprofHost, certFileName, keyFileName, nil))
+		}()
+
+		args := map[string]interface{}{"url": "https://" + pprofHost}
+		logger.Info("pprof starting", args)
+	}
+
+	select {}
+
 }

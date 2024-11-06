@@ -11,7 +11,7 @@ import (
 var servParams configParams
 
 // GetParams возвращает параметры для запуска приложения
-func GetParams() ParameterConfig {
+func GetParams() AppConfig {
 	if servParams.IsValid() {
 		return &servParams
 	}
@@ -26,86 +26,87 @@ func GetParams() ParameterConfig {
 
 	envConf, err := env.Parse()
 	if err == nil {
-		if envConf.HasBaseHost() {
-			host, hostErr := envConf.GetBaseHost()
-			port, portErr := envConf.GetBasePort()
-
-			if hostErr == nil && portErr == nil {
-				servParams.defaultHost = host
-				servParams.defaultPort = port
-			}
+		defaultHost, err := envConf.GetDefaultHost()
+		if err == nil {
+			servParams.defaultHost = defaultHost
 		}
 
-		if envConf.HasShortHost() {
-			host, hostErr := envConf.GetShortHost()
-			port, portErr := envConf.GetShortPort()
-
-			if hostErr == nil && portErr == nil {
-				servParams.shortHost = host
-				servParams.shortPort = port
-			}
+		defaultPort, err := envConf.GetDefaultPort()
+		if err == nil {
+			servParams.defaultPort = defaultPort
 		}
 
-		if envConf.HasFileStoragePath() {
-			storagePath, storageErr := envConf.GetFileStoragePath()
-			if storageErr == nil {
-				servParams.fileStoragePath = storagePath
-			}
+		shortHost, err := envConf.GetShortHost()
+		if err == nil {
+			servParams.shortHost = shortHost
 		}
 
-		if envConf.HasDBConnectString() {
-			dbConnectParams, dbParamsErr := envConf.GetDBConnectString()
-			if dbParamsErr == nil {
-				servParams.dbConnectString = dbConnectParams
-			}
+		shortPort, err := envConf.GetShortPort()
+		if err == nil {
+			servParams.shortPort = shortPort
 		}
 
-		if envConf.HasJWTSecret() {
-			jwtSecret, jwtSecretErr := envConf.GetJWTSecret()
-			if jwtSecretErr == nil {
-				servParams.jwtSecret = jwtSecret
-			}
+		storagePath, err := envConf.GetFileStoragePath()
+		if err == nil {
+			servParams.fileStoragePath = storagePath
 		}
 
-		servParams.pProfHost = envConf.GetPPROFHost()
+		dbConnectParams, err := envConf.GetDBConnectString()
+		if err == nil {
+			servParams.dbConnectString = dbConnectParams
+		}
+
+		jwtSecret, err := envConf.GetJWTSecret()
+		if err == nil {
+			servParams.jwtSecret = jwtSecret
+		}
+
+		pprofHost, err := envConf.GetPProfHost()
+		if err == nil {
+			servParams.pProfHost = pprofHost
+		}
+
+		servParams.enableHTTPS = envConf.GetIsEnableHTTPS()
 	}
 
 	cliConf := flags.Parse()
-
-	if cliConf.HasDefaultHost() {
-		host, hostErr := cliConf.GetDefaultHost()
-		port, portErr := cliConf.GetDefaultPort()
-		if hostErr == nil && portErr == nil {
-			servParams.defaultHost = host
-			servParams.defaultPort = port
-		}
+	defaultHost, err := cliConf.GetDefaultHost()
+	if err == nil {
+		servParams.defaultHost = defaultHost
 	}
 
-	if cliConf.HasShortHost() {
-		host, hostErr := cliConf.GetShortHost()
-		port, portErr := cliConf.GetShortPort()
-		if hostErr == nil && portErr == nil {
-			servParams.shortHost = host
-			servParams.shortPort = port
-		}
+	defaultPort, err := cliConf.GetDefaultPort()
+	if err == nil {
+		servParams.defaultPort = defaultPort
 	}
 
-	if cliConf.HasFileStoragePath() {
-		storagePath, storageErr := cliConf.GetFileStoragePath()
-		if storageErr == nil {
-			servParams.fileStoragePath = storagePath
-		}
+	shortHost, err := cliConf.GetShortHost()
+	if err == nil {
+		servParams.shortHost = shortHost
 	}
 
-	if cliConf.HasDBConnectString() {
-		dbConnectParams, dbParamsErr := cliConf.GetDBConnectString()
-		if dbParamsErr == nil {
-			servParams.dbConnectString = dbConnectParams
-		}
+	shortPort, err := cliConf.GetShortPort()
+	if err == nil {
+		servParams.shortPort = shortPort
 	}
 
-	if cliConf.HasPProfHost() {
-		servParams.pProfHost = cliConf.GetPProfHost()
+	storagePath, err := cliConf.GetFileStoragePath()
+	if err == nil {
+		servParams.fileStoragePath = storagePath
+	}
+
+	dbConnectParams, err := cliConf.GetDBConnectString()
+	if err == nil {
+		servParams.dbConnectString = dbConnectParams
+	}
+
+	pprofHost, err := cliConf.GetPProfHost()
+	if err == nil {
+		servParams.pProfHost = pprofHost
+	}
+
+	if cliConf.HasEnableHTTPS() {
+		servParams.enableHTTPS = cliConf.GetIsEnableHTTPS()
 	}
 
 	return &servParams

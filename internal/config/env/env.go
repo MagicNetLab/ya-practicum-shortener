@@ -10,8 +10,8 @@ import (
 )
 
 // Parse парсинг env параметров. Возвращает IConfigurator и ошибку если что-то пошло не так при сборе параметров.
-func Parse() (IConfigurator, error) {
-	var envConf configurator
+func Parse() (Configurator, error) {
+	var envConf Configurator
 
 	err := godotenv.Load(".env")
 	if err != nil {
@@ -43,6 +43,10 @@ func Parse() (IConfigurator, error) {
 
 	if pProfHost := os.Getenv("PPROF_HOST"); pProfHost != "" {
 		envConf.pProfHost = pProfHost
+	}
+
+	if enableHTTPS := os.Getenv("ENABLE_HTTPS"); enableHTTPS != "" {
+		envConf.enableHTTPS = enableHTTPS == "true"
 	}
 
 	return envConf, nil

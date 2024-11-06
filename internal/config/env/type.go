@@ -1,124 +1,86 @@
 package env
 
-import (
-	"errors"
-	"strings"
-)
+import "errors"
 
-type configurator struct {
+type Configurator struct {
 	baseHost        []string `env:"SERVER_ADDRESS" envSeparator:":"`
 	shortHost       []string `env:"BASE_URL" envSeparator:":"`
 	fileStoragePath string   `env:"FILE_STORAGE_PATH"`
 	dbConnectString string   `env:"DATABASE_DSN"`
 	jwtSecret       string   `env:"JWT_SECRET"`
 	pProfHost       string   `env:"PPROF_HOST" envDefault:"localhost:5000"`
+	enableHTTPS     bool     `env:"ENABLE_HTTPS" envDefault:"false"`
 }
 
-// HasBaseHost проверяет установлен базовый хост для запуска приложения или нет
-func (e configurator) HasBaseHost() bool {
-	return len(e.baseHost) == 2
+// GetDefaultHost возвращает базовый хост для запуска приложения
+func (c Configurator) GetDefaultHost() (string, error) {
+	if len(c.baseHost) == 0 || c.baseHost[0] == "" {
+		return "", errors.New("base host not set")
+	}
+	return c.baseHost[0], nil
 }
 
-// HasShortHost проверяет установлен ли хост для перенаправлений при переходе по коротким ссылкам
-func (e configurator) HasShortHost() bool {
-	return len(e.shortHost) == 2
-}
-
-// GetBaseHost возвращает базовый хост для запуска приложения
-func (e configurator) GetBaseHost() (string, error) {
-	if !e.HasBaseHost() {
-		return "", errors.New("base host not init in env")
+// GetDefaultPort возвращает базовый порт для запуска приложения
+func (c Configurator) GetDefaultPort() (string, error) {
+	if len(c.baseHost) == 0 || c.baseHost[1] == "" {
+		return "", errors.New("base port not set")
 	}
-
-	if e.baseHost[0] == "" {
-		return "", errors.New("base host is empty")
-	}
-
-	return e.baseHost[0], nil
-}
-
-// GetBasePort возвращает базовый порт для запуска приложения
-func (e configurator) GetBasePort() (string, error) {
-	if !e.HasBaseHost() {
-		return "", errors.New("base host not init in env")
-	}
-
-	if e.baseHost[1] == "" {
-		return "", errors.New("base port is empty")
-	}
-
-	return e.baseHost[1], nil
-}
-
-// GetShortHostString возвращает адрес хоста и порта для обработки переходов по коротким ссылкам
-func (e configurator) GetShortHostString() (string, error) {
-	if !e.HasShortHost() {
-		return "", errors.New("base host not init in env")
-	}
-
-	return strings.Join(e.shortHost, ":"), nil
+	return c.baseHost[1], nil
 }
 
 // GetShortHost возвращает хост для обработки переходов по коротким ссылкам
-func (e configurator) GetShortHost() (string, error) {
-	if !e.HasShortHost() {
-		return "", errors.New("base host not init in env")
+func (c Configurator) GetShortHost() (string, error) {
+	if len(c.shortHost) == 0 || c.shortHost[0] == "" {
+		return "", errors.New("short host not set")
 	}
-
-	return e.shortHost[0], nil
+	return c.shortHost[0], nil
 }
 
-// GetShortPort Возвращает порт для обработки переходов по коротким ссылкам
-func (e configurator) GetShortPort() (string, error) {
-	if !e.HasShortHost() {
-		return "", errors.New("base host not init in env")
+// GetShortPort возвращает порт для обработки переходов по коротким ссылкам
+func (c Configurator) GetShortPort() (string, error) {
+	if len(c.shortHost) == 0 || c.shortHost[1] == "" {
+		return "", errors.New("short port not set")
 	}
-
-	return e.shortHost[1], nil
+	return c.shortHost[1], nil
 }
 
-// HasFileStoragePath проверяет установлен ли путь до файла для локального хранения кэша
-func (e configurator) HasFileStoragePath() bool {
-	return e.fileStoragePath != ""
-}
-
-// GetFileStoragePath возвращает пусть до файла для локального хранения кэша
-func (e configurator) GetFileStoragePath() (string, error) {
-	if !e.HasFileStoragePath() {
-		return "", errors.New("file storage path not init")
+// GetFileStoragePath возвращает путь до файла локального хранилища ссылок
+func (c Configurator) GetFileStoragePath() (string, error) {
+	if c.fileStoragePath == "" {
+		return "", errors.New("file storage path not set")
 	}
-
-	return e.fileStoragePath, nil
+	return c.fileStoragePath, nil
 }
 
-// HasDBConnectString проверяет установлена ли строка с настройками для подключения к БД
-func (e configurator) HasDBConnectString() bool {
-	return e.dbConnectString != ""
-}
-
-// GetDBConnectString возвращает строку с настройками для подключения в БД
-func (e configurator) GetDBConnectString() (string, error) {
-	if !e.HasDBConnectString() {
-		return "", errors.New("db connect params not init")
+// GetDBConnectString возвращает строку с парамерами для подключения к БД
+func (c Configurator) GetDBConnectString() (string, error) {
+	if c.dbConnectString == "" {
+		return "", errors.New("database connect string not set")
 	}
-
-	return e.dbConnectString, nil
+	return c.dbConnectString, nil
 }
 
-// HasJWTSecret проверяет установлен ли секрет для генерации JWT токенов
-func (e configurator) HasJWTSecret() bool {
-	return e.jwtSecret != ""
-}
-
-// GetJWTSecret возвращает секрет для генерации JWT токенов
-func (e configurator) GetJWTSecret() (string, error) {
-	if !e.HasJWTSecret() {
-		return "", errors.New("jwttoken secret not init")
+// GetJWTSecret возвращает строку секрет для генерации  JWT токенов
+func (c Configurator) GetJWTSecret() (string, error) {
+	if c.jwtSecret == "" {
+		return "", errors.New("jwt secret not set")
 	}
-	return e.jwtSecret, nil
+	return c.jwtSecret, nil
 }
 
-// GetPPROFHost возвращает хост для запуска профилировщика
-func (e configurator) GetPPROFHost() string {
-	return e.pProfHost
+// GetPProfHost возвращает хост для запуска профилировщика приложения
+func (c Configurator) GetPProfHost() (string, error) {
+	if c.pProfHost == "" {
+		return "", errors.New("pprof host not set")
+	}
+	return c.pProfHost, nil
+}
+
+// GetIsEnableHTTPS возвращает флаг необходимости использования https для запуска сервера
+func (c Configurator) GetIsEnableHTTPS() bool {
+	return c.enableHTTPS
+}
+
+func (c Configurator) HasEnableHTTPS() bool {
+	return true
 }

@@ -9,9 +9,10 @@ const (
 	dbConnectKey    = "d"
 	jwtSecret       = "j"
 	pProfKey        = "p"
+	enableHTTPSKey  = "s"
 )
 
-type cliConf struct {
+type CliConf struct {
 	defaultHost     string
 	defaultPort     string
 	shortHost       string
@@ -20,101 +21,80 @@ type cliConf struct {
 	dbConnectString string
 	jwtSecret       string
 	pProfHost       string
-}
-
-// HasDefaultHost проверяет установлен базовый хост для запуска приложения или нет
-func (cc *cliConf) HasDefaultHost() bool {
-	return cc.defaultHost != "" && cc.defaultPort != ""
+	enableHTTPS     bool
+	hasEnableHTTPS  bool
 }
 
 // GetDefaultHost возвращает базовый хост для запуска приложения
-func (cc *cliConf) GetDefaultHost() (string, error) {
-	if cc.defaultHost == "" {
+func (c CliConf) GetDefaultHost() (string, error) {
+	if c.defaultHost == "" {
 		return "", errors.New("default host not set")
 	}
-
-	return cc.defaultHost, nil
+	return c.defaultHost, nil
 }
 
 // GetDefaultPort возвращает базовый порт для запуска приложения
-func (cc *cliConf) GetDefaultPort() (string, error) {
-	if cc.defaultPort == "" {
+func (c CliConf) GetDefaultPort() (string, error) {
+	if c.defaultPort == "" {
 		return "", errors.New("default port not set")
 	}
-
-	return cc.defaultPort, nil
-}
-
-// HasShortHost проверяет установлен ли хост для перенаправлений при переходе по коротким ссылкам
-func (cc *cliConf) HasShortHost() bool {
-	return cc.shortHost != "" && cc.shortPort != ""
+	return c.defaultPort, nil
 }
 
 // GetShortHost возвращает хост для обработки переходов по коротким ссылкам
-func (cc *cliConf) GetShortHost() (string, error) {
-	if cc.shortHost == "" {
+func (c CliConf) GetShortHost() (string, error) {
+	if c.shortHost == "" {
 		return "", errors.New("short host not set")
 	}
-
-	return cc.shortHost, nil
+	return c.shortHost, nil
 }
 
 // GetShortPort возвращает порт для обработки переходов по коротким ссылкам
-func (cc *cliConf) GetShortPort() (string, error) {
-	if cc.shortPort == "" {
+func (c CliConf) GetShortPort() (string, error) {
+	if c.shortPort == "" {
 		return "", errors.New("short port not set")
 	}
-
-	return cc.shortPort, nil
+	return c.shortPort, nil
 }
 
-// HasFileStoragePath проверяет установлен ли путь до файла для локального хранения кэша
-func (cc *cliConf) HasFileStoragePath() bool {
-	return cc.fileStoragePath != ""
-}
-
-// GetFileStoragePath возвращает пусть до файла для локального хранения кэша
-func (cc *cliConf) GetFileStoragePath() (string, error) {
-	if !cc.HasFileStoragePath() {
+// GetFileStoragePath возвращает путь до файла локального хранилища ссылок
+func (c CliConf) GetFileStoragePath() (string, error) {
+	if c.fileStoragePath == "" {
 		return "", errors.New("file storage path not set")
 	}
-
-	return cc.fileStoragePath, nil
+	return c.fileStoragePath, nil
 }
 
-// HasDBConnectString проверяет установлена ли строка с настройками для подключения к БД
-func (cc *cliConf) HasDBConnectString() bool {
-	return cc.dbConnectString != ""
-}
-
-// GetDBConnectString возвращает строку с настройками для подключения в БД
-func (cc *cliConf) GetDBConnectString() (string, error) {
-	if !cc.HasDBConnectString() {
-		return "", errors.New("database connect param not set")
+// GetDBConnectString возвращает строку с парамерами для подключения к БД
+func (c CliConf) GetDBConnectString() (string, error) {
+	if c.dbConnectString == "" {
+		return "", errors.New("db connect string not set")
 	}
-
-	return cc.dbConnectString, nil
+	return c.dbConnectString, nil
 }
 
-// HasJWTSecret проверяет установлен ли секрет для генерации JWT токенов
-func (cc *cliConf) HasJWTSecret() bool {
-	return cc.jwtSecret != ""
-}
-
-// GetJWTSecret возвращает секрет для генерации JWT токенов
-func (cc *cliConf) GetJWTSecret() (string, error) {
-	if cc.jwtSecret == "" {
-		return "", errors.New("jwttoken secret not set")
+// GetJWTSecret возвращает строку секрет для генерации  JWT токенов
+func (c CliConf) GetJWTSecret() (string, error) {
+	if c.jwtSecret == "" {
+		return "", errors.New("jwt secret not set")
 	}
-	return cc.jwtSecret, nil
+	return c.jwtSecret, nil
 }
 
-// HasPProfHost проверяет установлен ли хост для запуска профилировщика
-func (cc *cliConf) HasPProfHost() bool {
-	return cc.pProfHost != ""
+// GetPProfHost возвращает хост для запуска профилировщика приложения
+func (c CliConf) GetPProfHost() (string, error) {
+	if c.pProfHost == "" {
+		return "", errors.New("pprof host not set")
+	}
+	return c.pProfHost, nil
 }
 
-// GetPProfHost возвращает хост для запуска профилировщика
-func (cc *cliConf) GetPProfHost() string {
-	return cc.pProfHost
+// GetIsEnableHTTPS возвращает флаг необходимости использования https для запуска сервера
+func (c CliConf) GetIsEnableHTTPS() bool {
+	return c.enableHTTPS
+}
+
+// HasEnableHTTPS возвращает был ли задействован флаг использования https или нет
+func (c CliConf) HasEnableHTTPS() bool {
+	return c.hasEnableHTTPS
 }

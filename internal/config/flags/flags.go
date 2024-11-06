@@ -6,14 +6,15 @@ import (
 )
 
 // Parse сбор параметров установленных в cli при запуске приложения.
-func Parse() CliConfigurator {
-	var conf cliConf
+func Parse() CliConf {
+	var conf CliConf
 	var defaultHost = ""
 	var shortHost = ""
 	var fileStorage = ""
 	var dbConnectString = ""
 	var jwtSecretKey = ""
 	var pProfHost = ""
+	var enableHTTPS string
 
 	flag.StringVar(&defaultHost, defaultHostKey, "", "Base address")
 	flag.StringVar(&shortHost, shortHostKey, "", "short links host")
@@ -21,6 +22,7 @@ func Parse() CliConfigurator {
 	flag.StringVar(&dbConnectString, dbConnectKey, "", "database connect param")
 	flag.StringVar(&jwtSecretKey, jwtSecret, "", "jwttoken secret")
 	flag.StringVar(&pProfHost, pProfKey, "", "pprof host")
+	flag.StringVar(&enableHTTPS, enableHTTPSKey, "", "enable https")
 	flag.Parse()
 
 	dh := strings.Split(defaultHost, ":")
@@ -39,6 +41,10 @@ func Parse() CliConfigurator {
 	conf.dbConnectString = dbConnectString
 	conf.jwtSecret = jwtSecretKey
 	conf.pProfHost = pProfHost
+	if enableHTTPS != "" {
+		conf.hasEnableHTTPS = true
+		conf.enableHTTPS = enableHTTPS == "true"
+	}
 
-	return &conf
+	return conf
 }
