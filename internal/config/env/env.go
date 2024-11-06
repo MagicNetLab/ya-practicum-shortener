@@ -1,7 +1,6 @@
 package env
 
 import (
-	"log"
 	"os"
 	"strings"
 
@@ -21,13 +20,19 @@ func Parse() (Configurator, error) {
 	}
 
 	baseHost := os.Getenv("SERVER_ADDRESS")
-	log.Println(baseHost)
+	// костыль для тестов на github. в env может приходить всякая ересь
+	if strings.Contains(baseHost, "http://") {
+		baseHost = strings.Replace(baseHost, "http://", "", 1)
+	}
 	if baseHost != "" && strings.Contains(baseHost, ":") {
 		envConf.baseHost = strings.Split(baseHost, ":")
 	}
 
 	shortHost := os.Getenv("BASE_URL")
-	log.Println(shortHost)
+	// костыль для тестов на github. в env может приходить всякая ересь
+	if strings.Contains(shortHost, "http://") {
+		shortHost = strings.Replace(shortHost, "http://", "", 1)
+	}
 	if shortHost != "" && strings.Contains(shortHost, ":") {
 		envConf.shortHost = strings.Split(shortHost, ":")
 	}
