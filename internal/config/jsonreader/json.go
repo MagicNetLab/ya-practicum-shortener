@@ -7,6 +7,7 @@ import (
 	"github.com/MagicNetLab/ya-practicum-shortener/internal/service/logger"
 )
 
+// Parse считывание параметров из файла с json конфигурацией
 func Parse(fileName string) Configurator {
 	var config Configurator
 

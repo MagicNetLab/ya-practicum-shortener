@@ -5,6 +5,7 @@ import (
 	"strings"
 )
 
+// Configurator параметры приложения считанные из файла конфигурации
 type Configurator struct {
 	ServerAddress   string `json:"server_address"`
 	BaseURL         string `json:"base_url"`
@@ -101,6 +102,7 @@ func (c Configurator) HasEnableHTTPS() bool {
 	return true
 }
 
+// GetConfigFilePath возвращает путь до файла с json конфигурацией (заглушка для интерфейса)
 func (c Configurator) GetConfigFilePath() (string, error) {
 	return "", errors.New("no config file path specified")
 }

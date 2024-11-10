@@ -88,6 +88,7 @@ func (c Configurator) HasEnableHTTPS() bool {
 	return true
 }
 
+// GetConfigFilePath возвращает путь до файла с json конфигурацией
 func (c Configurator) GetConfigFilePath() (string, error) {
 	if c.configFilePath == "" {
 		return "", errors.New("config file path not set")
