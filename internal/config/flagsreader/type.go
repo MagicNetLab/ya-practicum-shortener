@@ -1,4 +1,4 @@
-package flags
+package flagsreader
 
 import "errors"
 
@@ -10,6 +10,7 @@ const (
 	jwtSecret       = "j"
 	pProfKey        = "p"
 	enableHTTPSKey  = "s"
+	configFileKey   = "c"
 )
 
 // CliConf параметры приложения собранные из флагов указанных при запуске
@@ -24,6 +25,7 @@ type CliConf struct {
 	pProfHost       string
 	enableHTTPS     bool
 	hasEnableHTTPS  bool
+	configFilePath  string
 }
 
 // GetDefaultHost возвращает базовый хост для запуска приложения
@@ -98,4 +100,13 @@ func (c CliConf) GetIsEnableHTTPS() bool {
 // HasEnableHTTPS возвращает был ли задействован флаг использования https или нет
 func (c CliConf) HasEnableHTTPS() bool {
 	return c.hasEnableHTTPS
+}
+
+// GetConfigFilePath возвращает путь до файла с json конфигурацией
+func (c CliConf) GetConfigFilePath() (string, error) {
+	if c.configFilePath == "" {
+		return "", errors.New("config file path not set")
+	}
+
+	return c.configFilePath, nil
 }

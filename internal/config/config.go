@@ -4,8 +4,9 @@ import (
 	"crypto/rand"
 	"encoding/hex"
 
-	"github.com/MagicNetLab/ya-practicum-shortener/internal/config/env"
-	"github.com/MagicNetLab/ya-practicum-shortener/internal/config/flags"
+	"github.com/MagicNetLab/ya-practicum-shortener/internal/config/envreader"
+	"github.com/MagicNetLab/ya-practicum-shortener/internal/config/flagsreader"
+	"github.com/MagicNetLab/ya-practicum-shortener/internal/config/jsonreader"
 )
 
 var servParams configParams
@@ -16,6 +17,29 @@ func GetParams() AppConfig {
 		return &servParams
 	}
 
+	var confFile string
+	setDefaultParams()
+	envConf := envreader.Parse()
+	cliConf := flagsreader.Parse()
+
+	if filePath, err := envConf.GetConfigFilePath(); err == nil && filePath != "" {
+		confFile = filePath
+	}
+	if filePath, err := cliConf.GetConfigFilePath(); err == nil && filePath != "" {
+		confFile = filePath
+	}
+	if confFile != "" {
+		jsonConf := jsonreader.Parse(confFile)
+		appendParams(jsonConf)
+	}
+
+	appendParams(envConf)
+	appendParams(cliConf)
+
+	return &servParams
+}
+
+func setDefaultParams() {
 	// костыль для тестов. без этих значений приложение в принципе не должно запускаться
 	servParams.defaultHost = "localhost"
 	servParams.defaultPort = "8080"
@@ -23,93 +47,50 @@ func GetParams() AppConfig {
 	servParams.shortPort = "8080"
 	servParams.fileStoragePath = "/tmp/short-url-db.json"
 	servParams.jwtSecret = getRandomSecret()
+}
 
-	envConf, err := env.Parse()
-	if err == nil {
-		defaultHost, err := envConf.GetDefaultHost()
-		if err == nil {
-			servParams.defaultHost = defaultHost
-		}
-
-		defaultPort, err := envConf.GetDefaultPort()
-		if err == nil {
-			servParams.defaultPort = defaultPort
-		}
-
-		shortHost, err := envConf.GetShortHost()
-		if err == nil {
-			servParams.shortHost = shortHost
-		}
-
-		shortPort, err := envConf.GetShortPort()
-		if err == nil {
-			servParams.shortPort = shortPort
-		}
-
-		storagePath, err := envConf.GetFileStoragePath()
-		if err == nil {
-			servParams.fileStoragePath = storagePath
-		}
-
-		dbConnectParams, err := envConf.GetDBConnectString()
-		if err == nil {
-			servParams.dbConnectString = dbConnectParams
-		}
-
-		jwtSecret, err := envConf.GetJWTSecret()
-		if err == nil {
-			servParams.jwtSecret = jwtSecret
-		}
-
-		pprofHost, err := envConf.GetPProfHost()
-		if err == nil {
-			servParams.pProfHost = pprofHost
-		}
-
-		servParams.enableHTTPS = envConf.GetIsEnableHTTPS()
-	}
-
-	cliConf := flags.Parse()
-	defaultHost, err := cliConf.GetDefaultHost()
+func appendParams(reader ParamsReader) {
+	defaultHost, err := reader.GetDefaultHost()
 	if err == nil {
 		servParams.defaultHost = defaultHost
 	}
 
-	defaultPort, err := cliConf.GetDefaultPort()
+	defaultPort, err := reader.GetDefaultPort()
 	if err == nil {
 		servParams.defaultPort = defaultPort
 	}
 
-	shortHost, err := cliConf.GetShortHost()
+	shortHost, err := reader.GetShortHost()
 	if err == nil {
 		servParams.shortHost = shortHost
 	}
 
-	shortPort, err := cliConf.GetShortPort()
+	shortPort, err := reader.GetShortPort()
 	if err == nil {
 		servParams.shortPort = shortPort
 	}
 
-	storagePath, err := cliConf.GetFileStoragePath()
+	storagePath, err := reader.GetFileStoragePath()
 	if err == nil {
 		servParams.fileStoragePath = storagePath
 	}
 
-	dbConnectParams, err := cliConf.GetDBConnectString()
+	dbConnectParams, err := reader.GetDBConnectString()
 	if err == nil {
 		servParams.dbConnectString = dbConnectParams
 	}
 
-	pprofHost, err := cliConf.GetPProfHost()
+	jwtSecret, err := reader.GetJWTSecret()
+	if err == nil {
+		servParams.jwtSecret = jwtSecret
+	}
+
+	pprofHost, err := reader.GetPProfHost()
 	if err == nil {
 		servParams.pProfHost = pprofHost
 	}
 
-	if cliConf.HasEnableHTTPS() {
-		servParams.enableHTTPS = cliConf.GetIsEnableHTTPS()
-	}
-
-	return &servParams
+	servParams.enableHTTPS = reader.GetIsEnableHTTPS()
 }
 
 func getRandomSecret() string {

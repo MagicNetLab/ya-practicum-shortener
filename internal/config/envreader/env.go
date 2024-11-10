@@ -1,4 +1,4 @@
-package env
+package envreader
 
 import (
 	"os"
@@ -10,7 +10,7 @@ import (
 )
 
 // Parse парсинг env параметров. Возвращает IConfigurator и ошибку если что-то пошло не так при сборе параметров.
-func Parse() (Configurator, error) {
+func Parse() Configurator {
 	var envConf Configurator
 
 	err := godotenv.Load(".env")
@@ -53,5 +53,9 @@ func Parse() (Configurator, error) {
 		envConf.enableHTTPS = enableHTTPS == "true"
 	}
 
-	return envConf, nil
+	if configFilePath := os.Getenv("CONFIG"); configFilePath != "" {
+		envConf.configFilePath = configFilePath
+	}
+
+	return envConf
 }

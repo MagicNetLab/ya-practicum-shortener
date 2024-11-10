@@ -1,4 +1,4 @@
-package flags
+package flagsreader
 
 import (
 	"flag"
@@ -15,6 +15,7 @@ func Parse() CliConf {
 	var jwtSecretKey = ""
 	var pProfHost = ""
 	var enableHTTPS string
+	var configFilePath string
 
 	flag.StringVar(&defaultHost, defaultHostKey, "", "Base address")
 	flag.StringVar(&shortHost, shortHostKey, "", "short links host")
@@ -23,6 +24,7 @@ func Parse() CliConf {
 	flag.StringVar(&jwtSecretKey, jwtSecret, "", "jwttoken secret")
 	flag.StringVar(&pProfHost, pProfKey, "", "pprof host")
 	flag.StringVar(&enableHTTPS, enableHTTPSKey, "", "enable https")
+	flag.StringVar(&configFilePath, configFileKey, "", "config file path")
 	flag.Parse()
 
 	dh := strings.Split(defaultHost, ":")
@@ -45,6 +47,7 @@ func Parse() CliConf {
 		conf.hasEnableHTTPS = true
 		conf.enableHTTPS = enableHTTPS == "true"
 	}
+	conf.configFilePath = configFilePath
 
 	return conf
 }

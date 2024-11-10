@@ -42,6 +42,8 @@ type ParamsReader interface {
 	GetIsEnableHTTPS() bool
 	// HasEnableHTTPS возвращает был ли установлен параметр enableHTTPS
 	HasEnableHTTPS() bool
+	// GetConfigFilePath возвращает имя файла с json конфигурацией
+	GetConfigFilePath() (string, error)
 }
 
 type configParams struct {
