@@ -247,6 +247,7 @@ func (s *store) Init() error {
 	return nil
 }
 
+// Close закрывает хранилище
 func (s *store) Close() error {
 	return nil
 }

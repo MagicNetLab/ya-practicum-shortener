@@ -269,6 +269,7 @@ func (s *store) DeleteBatchLinksArray(ctx context.Context, shorts []string, user
 	return nil
 }
 
+// Close закрывает соединение с БД
 func (s *store) Close() error {
 	// todo сделать нормально закрытие коннектов к базе.
 	return nil
