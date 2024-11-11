@@ -27,4 +27,7 @@ type Storer interface {
 
 	// Init инициализация хранилища
 	Init() error
+
+	// Close Закрывает хранилище
+	Close() error
 }

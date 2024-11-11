@@ -45,6 +45,7 @@ type store struct {
 
 // Init инициализация БД
 func (s *store) Init() error {
+	// todo отрефакторить и избавиться от постоянных подключений к БД (держать канал).
 	conf := config.GetParams()
 
 	connectParams, err := parseConnectString(conf.GetDBConnectString())
@@ -265,6 +266,11 @@ func (s *store) DeleteBatchLinksArray(ctx context.Context, shorts []string, user
 		return errors.New("filed delete data: " + exec.String())
 	}
 
+	return nil
+}
+
+func (s *store) Close() error {
+	// todo сделать нормально закрытие коннектов к базе.
 	return nil
 }
 

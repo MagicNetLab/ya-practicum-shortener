@@ -6,9 +6,10 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"os"
+
 	"github.com/MagicNetLab/ya-practicum-shortener/internal/config"
 	"github.com/MagicNetLab/ya-practicum-shortener/internal/service/logger"
-	"os"
 )
 
 // StoreEntity структура данных для хранения в кэше
@@ -243,6 +244,10 @@ func (s *store) Init() error {
 		s.isCacheLoaded = true
 	}
 
+	return nil
+}
+
+func (s *store) Close() error {
 	return nil
 }
 
