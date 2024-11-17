@@ -1,10 +1,13 @@
 package postgres
 
 import (
-	"database/sql"
+	"context"
+	"fmt"
+	"time"
 
 	"github.com/MagicNetLab/ya-practicum-shortener/internal/config"
 	"github.com/MagicNetLab/ya-practicum-shortener/internal/service/logger"
+	"github.com/jackc/pgx/v5"
 )
 
 // GetStore возвращает ссылку на объект хранилища
@@ -14,26 +17,43 @@ func GetStore() *Store {
 
 // Ping проверка соединения с БД
 func Ping() bool {
-	parameterConfig := config.GetParams()
-	dbConnect := parameterConfig.GetDBConnectString()
+	var connectStr string
+	conf := config.GetParams()
+	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	defer cancel()
 
-	if dbConnect == "" {
+	if conf.GetDBConnectString() == "" {
 		logger.Error("Postgres connection params not configured", nil)
 		return false
 	}
 
-	db, err := sql.Open("pgx", dbConnect)
+	connectParams, err := parseConnectString(conf.GetDBConnectString())
+	if err == nil {
+		connectStr = fmt.Sprintf(
+			"postgres://%s:%s@%s:%s/%s?sslmode=%s",
+			connectParams[dbUser],
+			connectParams[dbPassword],
+			connectParams[dbHost],
+			connectParams[dbPort],
+			connectParams[dbName],
+			connectParams[dbDBSslMode])
+	} else {
+		args := map[string]interface{}{"connect": conf.GetDBConnectString()}
+		logger.Error("failed parse connect string", args)
+		connectStr = conf.GetDBConnectString()
+	}
+
+	conn, err := pgx.Connect(ctx, connectStr)
 	if err != nil {
 		args := map[string]interface{}{"error": err.Error()}
-		logger.Error("Postgres connection error: %v", args)
+		logger.Error("failed connect to database", args)
 		return false
 	}
-	defer db.Close()
 
-	pingErr := db.Ping()
-	if pingErr != nil {
-		args := map[string]interface{}{"error": pingErr.Error()}
-		logger.Error("Postgres ping error: %v", args)
+	err = conn.Ping(ctx)
+	if err != nil {
+		args := map[string]interface{}{"error": err.Error()}
+		logger.Error("database ping error", args)
 		return false
 	}
 

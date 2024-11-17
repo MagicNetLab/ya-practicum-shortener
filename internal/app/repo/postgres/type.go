@@ -8,11 +8,11 @@ import (
 	"strings"
 	"time"
 
-	"github.com/MagicNetLab/ya-practicum-shortener/internal/service/logger"
 	"github.com/jackc/pgerrcode"
 	"github.com/jackc/pgx/v5"
 
 	"github.com/MagicNetLab/ya-practicum-shortener/internal/config"
+	"github.com/MagicNetLab/ya-practicum-shortener/internal/service/logger"
 )
 
 const (
