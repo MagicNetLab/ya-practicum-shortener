@@ -20,17 +20,25 @@ func Parse() Configurator {
 	}
 
 	baseHost := os.Getenv("SERVER_ADDRESS")
-	// костыль для тестов на github. в env может приходить всякая ересь
+	// ожидаемый формат host:port но в тестах на github данные могут приходить в формате  http://host или http://host:port
+	// приводим значение к ожидаемому и если не получилось то будет вставлено дефолтное значение
 	baseHost = strings.Replace(baseHost, "http://", "", 1)
 	if baseHost != "" && strings.Contains(baseHost, ":") {
 		envConf.baseHost = strings.Split(baseHost, ":")
+	} else {
+		args := map[string]interface{}{"server_address_value": os.Getenv("SERVER_ADDRESS")}
+		logger.Error("invalid value SERVER_ADDRESS from env. default value set", args)
 	}
 
 	shortHost := os.Getenv("BASE_URL")
-	// костыль для тестов на github. в env может приходить всякая ересь
+	// ожидаемый формат host:port но в тестах на github данные могут приходить в формате  http://host или http://host:port
+	// приводим значение к ожидаемому и если не получилось то будет вставлено дефолтное значение
 	shortHost = strings.Replace(shortHost, "http://", "", 1)
 	if shortHost != "" && strings.Contains(shortHost, ":") {
 		envConf.shortHost = strings.Split(shortHost, ":")
+	} else {
+		args := map[string]interface{}{"base_url_value": os.Getenv("BASE_URL")}
+		logger.Error("invalid value BASE_URL from env. default value set", args)
 	}
 
 	if fileStorage := os.Getenv("FILE_STORAGE_PATH"); fileStorage != "" {

@@ -3,6 +3,7 @@ package config
 import (
 	"crypto/rand"
 	"encoding/hex"
+	"errors"
 
 	"github.com/MagicNetLab/ya-practicum-shortener/internal/config/envreader"
 	"github.com/MagicNetLab/ya-practicum-shortener/internal/config/flagsreader"
@@ -11,12 +12,7 @@ import (
 
 var servParams configParams
 
-// GetParams возвращает параметры для запуска приложения
-func GetParams() AppConfig {
-	if servParams.IsValid() {
-		return &servParams
-	}
-
+func Initialize() error {
 	var confFile string
 	setDefaultParams()
 	envConf := envreader.Parse()
@@ -36,6 +32,15 @@ func GetParams() AppConfig {
 	appendParams(envConf)
 	appendParams(cliConf)
 
+	if !servParams.IsValid() {
+		return errors.New("failed initialize application params")
+	}
+
+	return nil
+}
+
+// GetParams возвращает параметры для запуска приложения
+func GetParams() AppConfig {
 	return &servParams
 }
 
@@ -90,7 +95,9 @@ func appendParams(reader ParamsReader) {
 		servParams.pProfHost = pprofHost
 	}
 
-	servParams.enableHTTPS = reader.GetIsEnableHTTPS()
+	if reader.HasEnableHTTPS() {
+		servParams.enableHTTPS = reader.GetIsEnableHTTPS()
+	}
 }
 
 func getRandomSecret() string {

@@ -3,11 +3,14 @@ package postgres
 import (
 	"database/sql"
 
-	_ "github.com/jackc/pgx/v5/stdlib"
-
 	"github.com/MagicNetLab/ya-practicum-shortener/internal/config"
 	"github.com/MagicNetLab/ya-practicum-shortener/internal/service/logger"
 )
+
+// GetStore возвращает ссылку на объект хранилища
+func GetStore() *Store {
+	return &Store{}
+}
 
 // Ping проверка соединения с БД
 func Ping() bool {
@@ -25,6 +28,7 @@ func Ping() bool {
 		logger.Error("Postgres connection error: %v", args)
 		return false
 	}
+	defer db.Close()
 
 	pingErr := db.Ping()
 	if pingErr != nil {
@@ -32,8 +36,6 @@ func Ping() bool {
 		logger.Error("Postgres ping error: %v", args)
 		return false
 	}
-
-	defer db.Close()
 
 	return true
 }

@@ -8,10 +8,9 @@ import (
 	"syscall"
 	"time"
 
-	"github.com/MagicNetLab/ya-practicum-shortener/internal/service/logger"
-
+	"github.com/MagicNetLab/ya-practicum-shortener/internal/app/repo"
 	handle "github.com/MagicNetLab/ya-practicum-shortener/internal/app/server/handlers"
-	"github.com/MagicNetLab/ya-practicum-shortener/internal/app/storage"
+	"github.com/MagicNetLab/ya-practicum-shortener/internal/service/logger"
 )
 
 var runServers []*http.Server
@@ -30,33 +29,25 @@ func Run(configurator configurator) {
 	<-ctx.Done()
 
 	logger.Info("Server stopped", nil)
-	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	shutDownCTX, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
 
 	// Закрываем БД + сбрасываем логи из буфер
 	defer func() {
-		store, err := storage.GetStore()
-		if err == nil {
-			err = store.Close()
-			if err != nil {
-				args := map[string]interface{}{"errpr": err.Error()}
-				logger.Error("Failed close store", args)
-			}
+		err := repo.Close()
+		if err != nil {
+			args := map[string]interface{}{"errpr": err.Error()}
+			logger.Error("Failed close store", args)
 		}
-
 		logger.Sync()
-
-		cancel()
 	}()
 
 	for _, server := range runServers {
-		if err := server.Shutdown(ctx); err != nil {
+		if err := server.Shutdown(shutDownCTX); err != nil {
 			args := map[string]interface{}{"errpr": err.Error()}
 			logger.Error("Failed shutdown server", args)
 		}
 	}
-
-	stop()
 
 	logger.Info("Server exited", nil)
 }
@@ -119,8 +110,6 @@ func runHTTPServer(configurator configurator) {
 		args := map[string]interface{}{"url": "http://" + pprofHost}
 		logger.Info("pprof starting", args)
 	}
-
-	logger.Sync()
 }
 
 func runHTTPSServer(configurator configurator) {
@@ -181,5 +170,4 @@ func runHTTPSServer(configurator configurator) {
 		args := map[string]interface{}{"url": "https://" + pprofHost}
 		logger.Info("pprof starting", args)
 	}
-
 }

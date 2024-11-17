@@ -13,8 +13,7 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
-	"github.com/MagicNetLab/ya-practicum-shortener/internal/app/storage"
-	"github.com/MagicNetLab/ya-practicum-shortener/internal/app/storage/local"
+	"github.com/MagicNetLab/ya-practicum-shortener/internal/app/repo"
 	"github.com/MagicNetLab/ya-practicum-shortener/internal/config"
 	"github.com/MagicNetLab/ya-practicum-shortener/internal/service/jwttoken"
 )
@@ -96,6 +95,11 @@ func Test_apiEncodeHandler(t *testing.T) {
 		},
 	}
 
+	err := config.Initialize()
+	assert.NoError(t, err)
+	err = repo.Initialize(config.GetParams())
+	assert.NoError(t, err)
+
 	c := config.GetParams()
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
@@ -127,12 +131,15 @@ func Test_apiEncodeHandler(t *testing.T) {
 
 func Test_apiEncodeLinkByUnique(t *testing.T) {
 	t.Run("test send not unique link", func(t *testing.T) {
-		store, err := storage.GetStore()
+		err := config.Initialize()
 		assert.NoError(t, err)
+		err = repo.Initialize(config.GetParams())
+		assert.NoError(t, err)
+
 		link := "https://mail.ru"
 		userID := 3
 
-		err = store.PutLink(context.Background(), link, "uweyiu", userID)
+		err = repo.PutLink(context.Background(), link, "uweyiu", userID)
 		assert.NoError(t, err)
 
 		c := config.GetParams()
@@ -238,6 +245,11 @@ func Test_apiBatchEncodeHandler(t *testing.T) {
 		},
 	}
 
+	err := config.Initialize()
+	assert.NoError(t, err)
+	err = repo.Initialize(config.GetParams())
+	assert.NoError(t, err)
+
 	c := config.GetParams()
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
@@ -268,10 +280,15 @@ func Test_apiBatchEncodeHandler(t *testing.T) {
 }
 
 func Test_apiListUserLinksHandler(t *testing.T) {
+	err := config.Initialize()
+	assert.NoError(t, err)
+	err = repo.Initialize(config.GetParams())
+	assert.NoError(t, err)
+
 	wrongUserID := mrand.Intn(999999)
 	successUserID := mrand.Intn(999999)
 	putData := map[string]string{"dshdgj": "http://rambler.ru"}
-	err := local.Store.PutBatchLinksArray(context.Background(), putData, successUserID)
+	err = repo.PutBatchLinksArray(context.Background(), putData, successUserID)
 	require.NoError(t, err)
 
 	type want struct {

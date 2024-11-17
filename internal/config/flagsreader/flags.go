@@ -8,12 +8,12 @@ import (
 // Parse сбор параметров установленных в cli при запуске приложения.
 func Parse() CliConf {
 	var conf CliConf
-	var defaultHost = ""
-	var shortHost = ""
-	var fileStorage = ""
-	var dbConnectString = ""
-	var jwtSecretKey = ""
-	var pProfHost = ""
+	var defaultHost string
+	var shortHost string
+	var fileStorage string
+	var dbConnectString string
+	var jwtSecretKey string
+	var pProfHost string
 	var enableHTTPS string
 	var configFilePath string
 

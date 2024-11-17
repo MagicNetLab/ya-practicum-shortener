@@ -1,9 +1,17 @@
-package storage
+package repo
 
-import "context"
+import (
+	"context"
+	"errors"
 
-// Storer интерфейс объекта для работы с хранилищем ссылок
-type Storer interface {
+	"github.com/MagicNetLab/ya-practicum-shortener/internal/config"
+)
+
+// ErrorLinkNotUnique ошибка в случае попытки сохранения уже существующей в базе ссылки
+var ErrorLinkNotUnique = errors.New("link not unique")
+
+// Driver интерфейс драйвера хранения данных
+type Driver interface {
 	// PutLink сохранение ссылки пользователя в хранилище.
 	PutLink(ctx context.Context, link string, short string, userID int) error
 
@@ -25,8 +33,8 @@ type Storer interface {
 	// DeleteBatchLinksArray пометка массива ссылок пользователя как удаленных
 	DeleteBatchLinksArray(ctx context.Context, shorts []string, userID int) error
 
-	// Init инициализация хранилища
-	Init() error
+	// Initialize инициализация хранилища
+	Initialize(config config.AppConfig) error
 
 	// Close Закрывает хранилище
 	Close() error
