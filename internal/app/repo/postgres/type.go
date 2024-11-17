@@ -10,6 +10,7 @@ import (
 
 	"github.com/jackc/pgerrcode"
 	"github.com/jackc/pgx/v5"
+	"github.com/jackc/pgx/v5/pgxpool"
 
 	"github.com/MagicNetLab/ya-practicum-shortener/internal/config"
 	"github.com/MagicNetLab/ya-practicum-shortener/internal/service/logger"
@@ -38,6 +39,7 @@ var ErrLinkUniqueConflict = errors.New("url is not unique")
 // Store объект хранилища
 type Store struct {
 	conn    *pgx.Conn
+	pool    *pgxpool.Pool
 	connStr string
 }
 
@@ -165,8 +167,9 @@ func (s *Store) DeleteBatchLinksArray(ctx context.Context, shorts []string, user
 		ids = append(ids, v)
 	}
 	paramrefs = paramrefs[:len(paramrefs)-1]
+
 	sqlQuery := `UPDATE links SET is_deleted = true WHERE user_id = $1 AND short IN (` + paramrefs + `)`
-	exec, err := s.conn.Exec(ctx, sqlQuery, ids...)
+	exec, err := s.pool.Exec(ctx, sqlQuery, ids...)
 	if err != nil {
 		return err
 	}
@@ -216,7 +219,13 @@ func (s *Store) Initialize(config config.AppConfig) error {
 		return errors.New("migration error: " + err.Error())
 	}
 
+	pool, err := pgxpool.New(ctx, connectStr)
+	if err != nil {
+		return errors.New("database connection error: " + err.Error())
+	}
+
 	s.conn = conn
+	s.pool = pool
 
 	return nil
 }
