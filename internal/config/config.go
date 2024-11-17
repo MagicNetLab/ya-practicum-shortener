@@ -12,6 +12,7 @@ import (
 
 var servParams configParams
 
+// Initialize инициализация конфигурации приложения
 func Initialize() error {
 	var confFile string
 	setDefaultParams()
