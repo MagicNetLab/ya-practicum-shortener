@@ -38,14 +38,13 @@ var ErrLinkUniqueConflict = errors.New("url is not unique")
 
 // Store объект хранилища
 type Store struct {
-	conn    *pgx.Conn
 	pool    *pgxpool.Pool
 	connStr string
 }
 
 // PutLink сохранение ссылки пользователя в хранилище.
 func (s *Store) PutLink(ctx context.Context, link string, short string, userID int) error {
-	result, err := s.conn.Exec(ctx, insertLinkSQL, short, link, userID)
+	result, err := s.pool.Exec(ctx, insertLinkSQL, short, link, userID)
 	if err != nil {
 		if strings.Contains(err.Error(), pgerrcode.UniqueViolation) {
 			return ErrLinkUniqueConflict
@@ -62,7 +61,7 @@ func (s *Store) PutLink(ctx context.Context, link string, short string, userID i
 
 // PutBatchLinksArray сохранение пакета ссылок пользователя в хранилище.
 func (s *Store) PutBatchLinksArray(ctx context.Context, StoreBatchLinksArray map[string]string, userID int) error {
-	transaction, err := s.conn.Begin(ctx)
+	transaction, err := s.pool.Begin(ctx)
 	if err != nil {
 		return err
 	}
@@ -96,7 +95,7 @@ func (s *Store) PutBatchLinksArray(ctx context.Context, StoreBatchLinksArray map
 func (s *Store) GetLink(ctx context.Context, short string) (string, bool, error) {
 	var link string
 	var isDeleted bool
-	err := s.conn.QueryRow(ctx, selectLinkSQL, short).Scan(&link, &isDeleted)
+	err := s.pool.QueryRow(ctx, selectLinkSQL, short).Scan(&link, &isDeleted)
 	if err != nil {
 		return "", isDeleted, errors.New("database error: " + err.Error())
 	}
@@ -107,7 +106,7 @@ func (s *Store) GetLink(ctx context.Context, short string) (string, bool, error)
 // HasShort проверка наличия коротко ссылки в хранилище
 func (s *Store) HasShort(ctx context.Context, short string) (bool, error) {
 	var count int
-	err := s.conn.QueryRow(ctx, hasLinkSQL, short).Scan(&count)
+	err := s.pool.QueryRow(ctx, hasLinkSQL, short).Scan(&count)
 	if err != nil {
 		return false, err
 	}
@@ -122,7 +121,7 @@ func (s *Store) HasShort(ctx context.Context, short string) (bool, error) {
 // GetShort получение короткой ссылки из хранилища для оригинальной ссылки
 func (s *Store) GetShort(ctx context.Context, link string) (string, error) {
 	var short string
-	err := s.conn.QueryRow(ctx, selectShortSQL, link).Scan(&short)
+	err := s.pool.QueryRow(ctx, selectShortSQL, link).Scan(&short)
 	if err != nil {
 		return "", errors.New("database error: " + err.Error())
 	}
@@ -134,7 +133,7 @@ func (s *Store) GetShort(ctx context.Context, link string) (string, error) {
 func (s *Store) GetUserLinks(ctx context.Context, userID int) (map[string]string, error) {
 	res := make(map[string]string)
 
-	rows, err := s.conn.Query(ctx, selectUserLinks, userID)
+	rows, err := s.pool.Query(ctx, selectUserLinks, userID)
 	if err != nil {
 		if errors.Is(err, pgx.ErrNoRows) {
 			return res, nil
@@ -204,12 +203,12 @@ func (s *Store) Initialize(config config.AppConfig) error {
 		connectStr = config.GetDBConnectString()
 	}
 
-	conn, err := pgx.Connect(ctx, connectStr)
+	pool, err := pgxpool.New(ctx, connectStr)
 	if err != nil {
 		return errors.New("database connection error: " + err.Error())
 	}
 
-	err = conn.Ping(ctx)
+	err = pool.Ping(ctx)
 	if err != nil {
 		return errors.New("database ping error: " + err.Error())
 	}
@@ -219,12 +218,6 @@ func (s *Store) Initialize(config config.AppConfig) error {
 		return errors.New("migration error: " + err.Error())
 	}
 
-	pool, err := pgxpool.New(ctx, connectStr)
-	if err != nil {
-		return errors.New("database connection error: " + err.Error())
-	}
-
-	s.conn = conn
 	s.pool = pool
 
 	return nil
@@ -232,12 +225,7 @@ func (s *Store) Initialize(config config.AppConfig) error {
 
 // Close Закрывает хранилище
 func (s *Store) Close() error {
-	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
-	defer cancel()
+	s.pool.Close()
 
-	err := s.conn.Close(ctx)
-	if err != nil {
-		return err
-	}
 	return nil
 }
