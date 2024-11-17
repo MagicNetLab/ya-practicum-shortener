@@ -10,6 +10,7 @@ import (
 	"github.com/MagicNetLab/ya-practicum-shortener/internal/config/jsonreader"
 )
 
+// AppConfig объект с конфигурацией приложения
 var AppConfig Configurator
 
 // Initialize инициализация конфигурации приложения
