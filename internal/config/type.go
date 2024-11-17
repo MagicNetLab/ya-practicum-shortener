@@ -1,25 +1,5 @@
 package config
 
-// AppConfig хранилище параметров для запуска и работы приложения
-type AppConfig interface {
-	// GetDefaultHost возвращает хост для запуска приложения
-	GetDefaultHost() string
-	// GetShortHost возвращает хост для переходов по коротким ссылкам
-	GetShortHost() string
-	// GetFileStoragePath возвращает пусть до файла локального хранилища ссылок
-	GetFileStoragePath() string
-	// GetDBConnectString Возвращает строку с настройками для подключения к БД
-	GetDBConnectString() string
-	// GetJWTSecret возвращает секрет для генерации JWT токенов
-	GetJWTSecret() string
-	// GetPProfHost возвращает хост для запуска профилировщика
-	GetPProfHost() string
-	// IsEnableHTTPS возвращает нужно ли использовать https при запуске сервера
-	IsEnableHTTPS() bool
-	// IsValid проверяет корректность настроек для работы проложения
-	IsValid() bool
-}
-
 // ParamsReader интерфейс для плагинов чтения конфигураций
 type ParamsReader interface {
 	// GetDefaultHost возвращает базовый хост для запуска приложения
@@ -46,7 +26,8 @@ type ParamsReader interface {
 	GetConfigFilePath() (string, error)
 }
 
-type configParams struct {
+// Configurator хранилище параметров для запуска и работы приложения
+type Configurator struct {
 	defaultHost     string
 	defaultPort     string
 	shortHost       string
@@ -59,41 +40,41 @@ type configParams struct {
 }
 
 // GetDefaultHost возвращает хост для запуска приложения
-func (c configParams) GetDefaultHost() string {
+func (c Configurator) GetDefaultHost() string {
 	return c.defaultHost + ":" + c.defaultPort
 }
 
 // GetShortHost возвращает хост для переходов по коротким ссылкам
-func (c configParams) GetShortHost() string {
+func (c Configurator) GetShortHost() string {
 	return c.shortHost + ":" + c.shortPort
 }
 
 // GetFileStoragePath возвращает пусть до файла локального хранилища ссылок
-func (c configParams) GetFileStoragePath() string {
+func (c Configurator) GetFileStoragePath() string {
 	return c.fileStoragePath
 }
 
 // GetDBConnectString Возвращает строку с настройками для подключения к БД
-func (c configParams) GetDBConnectString() string {
+func (c Configurator) GetDBConnectString() string {
 	return c.dbConnectString
 }
 
 // GetJWTSecret возвращает секрет для генерации JWT токенов
-func (c configParams) GetJWTSecret() string {
+func (c Configurator) GetJWTSecret() string {
 	return c.jwtSecret
 }
 
 // GetPProfHost возвращает хост для запуска профилировщика
-func (c configParams) GetPProfHost() string {
+func (c Configurator) GetPProfHost() string {
 	return c.pProfHost
 }
 
 // IsEnableHTTPS возвращает нужно ли использовать https при запуске сервера
-func (c configParams) IsEnableHTTPS() bool {
+func (c Configurator) IsEnableHTTPS() bool {
 	return c.enableHTTPS
 }
 
 // IsValid проверяет корректность настроек для работы проложения
-func (c configParams) IsValid() bool {
+func (c Configurator) IsValid() bool {
 	return c.defaultHost != "" && c.defaultPort != "" && c.shortHost != "" && c.shortPort != "" && (c.fileStoragePath != "" || c.dbConnectString != "") && c.jwtSecret != ""
 }

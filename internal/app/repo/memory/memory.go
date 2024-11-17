@@ -123,7 +123,7 @@ func (s *Store) DeleteBatchLinksArray(ctx context.Context, shorts []string, user
 }
 
 // Initialize инициализация хранилища
-func (s *Store) Initialize(config config.AppConfig) error {
+func (s *Store) Initialize(config *config.Configurator) error {
 	s.data = make(map[string]linkEntity, 10)
 	if s.file = config.GetFileStoragePath(); s.file != "" {
 		err := s.loadFromFile()

@@ -10,7 +10,7 @@ import (
 	"github.com/MagicNetLab/ya-practicum-shortener/internal/config/jsonreader"
 )
 
-var servParams configParams
+var AppConfig Configurator
 
 // Initialize инициализация конфигурации приложения
 func Initialize() error {
@@ -33,7 +33,7 @@ func Initialize() error {
 	appendParams(envConf)
 	appendParams(cliConf)
 
-	if !servParams.IsValid() {
+	if !AppConfig.IsValid() {
 		return errors.New("failed initialize application params")
 	}
 
@@ -41,63 +41,63 @@ func Initialize() error {
 }
 
 // GetParams возвращает параметры для запуска приложения
-func GetParams() AppConfig {
-	return &servParams
+func GetParams() *Configurator {
+	return &AppConfig
 }
 
+// setDefaultParams установка дефолтных параметров на случай если из вне ни чего не пришло
 func setDefaultParams() {
-	// костыль для тестов. без этих значений приложение в принципе не должно запускаться
-	servParams.defaultHost = "localhost"
-	servParams.defaultPort = "8080"
-	servParams.shortHost = "localhost"
-	servParams.shortPort = "8080"
-	servParams.fileStoragePath = "/tmp/short-url-db.json"
-	servParams.jwtSecret = getRandomSecret()
+	AppConfig.defaultHost = "localhost"
+	AppConfig.defaultPort = "8080"
+	AppConfig.shortHost = "localhost"
+	AppConfig.shortPort = "8080"
+	AppConfig.fileStoragePath = "/tmp/short-url-db.json"
+	AppConfig.jwtSecret = getRandomSecret()
 }
 
 func appendParams(reader ParamsReader) {
 	defaultHost, err := reader.GetDefaultHost()
 	if err == nil {
-		servParams.defaultHost = defaultHost
+		AppConfig.defaultHost = defaultHost
 	}
 
 	defaultPort, err := reader.GetDefaultPort()
 	if err == nil {
-		servParams.defaultPort = defaultPort
+		AppConfig.defaultPort = defaultPort
 	}
 
 	shortHost, err := reader.GetShortHost()
 	if err == nil {
-		servParams.shortHost = shortHost
+		AppConfig.shortHost = shortHost
 	}
 
 	shortPort, err := reader.GetShortPort()
 	if err == nil {
-		servParams.shortPort = shortPort
+		AppConfig.shortPort = shortPort
 	}
 
 	storagePath, err := reader.GetFileStoragePath()
 	if err == nil {
-		servParams.fileStoragePath = storagePath
+		AppConfig.fileStoragePath = storagePath
 	}
 
 	dbConnectParams, err := reader.GetDBConnectString()
 	if err == nil {
-		servParams.dbConnectString = dbConnectParams
+		AppConfig.dbConnectString = dbConnectParams
 	}
 
 	jwtSecret, err := reader.GetJWTSecret()
 	if err == nil {
-		servParams.jwtSecret = jwtSecret
+		AppConfig.jwtSecret = jwtSecret
 	}
 
 	pprofHost, err := reader.GetPProfHost()
 	if err == nil {
-		servParams.pProfHost = pprofHost
+		AppConfig.pProfHost = pprofHost
 	}
 
 	if reader.HasEnableHTTPS() {
-		servParams.enableHTTPS = reader.GetIsEnableHTTPS()
+		AppConfig.enableHTTPS = reader.GetIsEnableHTTPS()
 	}
 }
 

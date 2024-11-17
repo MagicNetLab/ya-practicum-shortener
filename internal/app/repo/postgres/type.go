@@ -181,7 +181,7 @@ func (s *Store) DeleteBatchLinksArray(ctx context.Context, shorts []string, user
 }
 
 // Initialize инициализация хранилища
-func (s *Store) Initialize(config config.AppConfig) error {
+func (s *Store) Initialize(config *config.Configurator) error {
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
 

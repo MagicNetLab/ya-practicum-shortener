@@ -34,7 +34,7 @@ type Driver interface {
 	DeleteBatchLinksArray(ctx context.Context, shorts []string, userID int) error
 
 	// Initialize инициализация хранилища
-	Initialize(config config.AppConfig) error
+	Initialize(config *config.Configurator) error
 
 	// Close Закрывает хранилище
 	Close() error

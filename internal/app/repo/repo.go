@@ -11,14 +11,14 @@ import (
 var driver Driver
 
 // Initialize инициализация репозитория
-func Initialize(config config.AppConfig) error {
-	if config.GetDBConnectString() != "" {
+func Initialize(conf *config.Configurator) error {
+	if conf.GetDBConnectString() != "" {
 		driver = postgres.GetStore()
 	} else {
 		driver = memory.GetStore()
 	}
 
-	err := driver.Initialize(config)
+	err := driver.Initialize(conf)
 	if err != nil {
 		return err
 	}
