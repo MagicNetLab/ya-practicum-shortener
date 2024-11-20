@@ -13,8 +13,7 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
-	"github.com/MagicNetLab/ya-practicum-shortener/internal/app/storage"
-	"github.com/MagicNetLab/ya-practicum-shortener/internal/app/storage/local"
+	"github.com/MagicNetLab/ya-practicum-shortener/internal/app/repo"
 	"github.com/MagicNetLab/ya-practicum-shortener/internal/config"
 	"github.com/MagicNetLab/ya-practicum-shortener/internal/service/jwttoken"
 )
@@ -96,6 +95,11 @@ func Test_apiEncodeHandler(t *testing.T) {
 		},
 	}
 
+	err := config.Initialize()
+	assert.NoError(t, err)
+	err = repo.Initialize(config.GetParams())
+	assert.NoError(t, err)
+
 	c := config.GetParams()
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
@@ -127,15 +131,21 @@ func Test_apiEncodeHandler(t *testing.T) {
 
 func Test_apiEncodeLinkByUnique(t *testing.T) {
 	t.Run("test send not unique link", func(t *testing.T) {
-		store, err := storage.GetStore()
-		assert.NoError(t, err)
+		c := config.GetParams()
+		if !c.IsValid() {
+			errConf := config.Initialize()
+			assert.NoError(t, errConf)
+			errConf = repo.Initialize(config.GetParams())
+			assert.NoError(t, errConf)
+			c = config.GetParams()
+		}
+
 		link := "https://mail.ru"
 		userID := 3
 
-		err = store.PutLink(context.Background(), link, "uweyiu", userID)
+		err := repo.PutLink(context.Background(), link, "uweyiu", userID)
 		assert.NoError(t, err)
 
-		c := config.GetParams()
 		t.Run("test not unique link", func(t *testing.T) {
 			request := httptest.NewRequest(http.MethodPost, "/api/shorten", strings.NewReader("{\"url\": \"https://mail.ru\"}"))
 			token, _ := jwttoken.GenerateToken(3, c.GetJWTSecret())
@@ -239,6 +249,14 @@ func Test_apiBatchEncodeHandler(t *testing.T) {
 	}
 
 	c := config.GetParams()
+	if !c.IsValid() {
+		errConf := config.Initialize()
+		assert.NoError(t, errConf)
+		errConf = repo.Initialize(config.GetParams())
+		assert.NoError(t, errConf)
+		c = config.GetParams()
+	}
+
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			request := httptest.NewRequest(tt.method, tt.request, strings.NewReader(tt.body))
@@ -268,10 +286,19 @@ func Test_apiBatchEncodeHandler(t *testing.T) {
 }
 
 func Test_apiListUserLinksHandler(t *testing.T) {
+	c := config.GetParams()
+	if !c.IsValid() {
+		errConf := config.Initialize()
+		assert.NoError(t, errConf)
+		errConf = repo.Initialize(config.GetParams())
+		assert.NoError(t, errConf)
+		c = config.GetParams()
+	}
+
 	wrongUserID := mrand.Intn(999999)
 	successUserID := mrand.Intn(999999)
 	putData := map[string]string{"dshdgj": "http://rambler.ru"}
-	err := local.Store.PutBatchLinksArray(context.Background(), putData, successUserID)
+	err := repo.PutBatchLinksArray(context.Background(), putData, successUserID)
 	require.NoError(t, err)
 
 	type want struct {
@@ -311,7 +338,6 @@ func Test_apiListUserLinksHandler(t *testing.T) {
 		},
 	}
 
-	c := config.GetParams()
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			request := httptest.NewRequest(tt.method, tt.request, strings.NewReader(""))

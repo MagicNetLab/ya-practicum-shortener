@@ -1,8 +1,33 @@
 package config
 
-import "strings"
+// ParamsReader интерфейс для плагинов чтения конфигураций
+type ParamsReader interface {
+	// GetDefaultHost возвращает базовый хост для запуска приложения
+	GetDefaultHost() (string, error)
+	// GetDefaultPort возвращает базовый порт для запуска приложения
+	GetDefaultPort() (string, error)
+	// GetShortHost возвращает хост для обработки переходов по коротким ссылкам
+	GetShortHost() (string, error)
+	// GetShortPort возвращает порт для обработки переходов по коротким ссылкам
+	GetShortPort() (string, error)
+	// GetFileStoragePath возвращает путь до файла локального хранилища ссылок
+	GetFileStoragePath() (string, error)
+	// GetDBConnectString возвращает строку с парамерами для подключения к БД
+	GetDBConnectString() (string, error)
+	// GetJWTSecret возвращает строку секрет для генерации  JWT токенов
+	GetJWTSecret() (string, error)
+	// GetPProfHost возвращает хост для запуска профилировщика приложения
+	GetPProfHost() (string, error)
+	// GetIsEnableHTTPS возвращает флаг необходимости использования https для запуска сервера
+	GetIsEnableHTTPS() bool
+	// HasEnableHTTPS возвращает был ли установлен параметр enableHTTPS
+	HasEnableHTTPS() bool
+	// GetConfigFilePath возвращает имя файла с json конфигурацией
+	GetConfigFilePath() (string, error)
+}
 
-type configParams struct {
+// Configurator хранилище параметров для запуска и работы приложения
+type Configurator struct {
 	defaultHost     string
 	defaultPort     string
 	shortHost       string
@@ -10,102 +35,46 @@ type configParams struct {
 	fileStoragePath string
 	dbConnectString string
 	jwtSecret       string
-	pProfOn         bool
 	pProfHost       string
+	enableHTTPS     bool
 }
 
-// SetFileStoragePath установка пути до файла для локального хранения кэша
-func (sp *configParams) SetFileStoragePath(path string) error {
-	sp.fileStoragePath = path
-	return nil
+// GetDefaultHost возвращает хост для запуска приложения
+func (c Configurator) GetDefaultHost() string {
+	return c.defaultHost + ":" + c.defaultPort
 }
 
-// GetFileStoragePath получение пути до файла для локального хранения кэша
-func (sp *configParams) GetFileStoragePath() string {
-	return sp.fileStoragePath
+// GetShortHost возвращает хост для переходов по коротким ссылкам
+func (c Configurator) GetShortHost() string {
+	return c.shortHost + ":" + c.shortPort
 }
 
-// IsValid проверка корректности настроек для запуска приложения
-func (sp *configParams) IsValid() bool {
-	return sp.defaultHost != "" &&
-		sp.defaultPort != "" &&
-		sp.shortHost != "" &&
-		sp.shortPort != "" &&
-		sp.fileStoragePath != ""
-
+// GetFileStoragePath возвращает пусть до файла локального хранилища ссылок
+func (c Configurator) GetFileStoragePath() string {
+	return c.fileStoragePath
 }
 
-// SetDefaultHost установка хоста для работы с данными пользователя
-func (sp *configParams) SetDefaultHost(host string, port string) error {
-	sp.defaultHost = host
-	sp.defaultPort = port
-
-	return nil
+// GetDBConnectString Возвращает строку с настройками для подключения к БД
+func (c Configurator) GetDBConnectString() string {
+	return c.dbConnectString
 }
 
-// SetShortHost установка хоста для обработки переходов по  коротким ссылкам
-func (sp *configParams) SetShortHost(host string, port string) error {
-	sp.shortHost = host
-	sp.shortPort = port
-
-	return nil
+// GetJWTSecret возвращает секрет для генерации JWT токенов
+func (c Configurator) GetJWTSecret() string {
+	return c.jwtSecret
 }
 
-// GetDefaultHost получение хоста для работы с данными пользователя
-func (sp *configParams) GetDefaultHost() string {
-	p := []string{sp.defaultHost, sp.defaultPort}
-	return strings.Join(p, ":")
+// GetPProfHost возвращает хост для запуска профилировщика
+func (c Configurator) GetPProfHost() string {
+	return c.pProfHost
 }
 
-// GetShortHost получение хоста для обработки переходов по коротким ссылкам
-func (sp *configParams) GetShortHost() string {
-	p := []string{sp.shortHost, sp.shortPort}
-	return strings.Join(p, ":")
+// IsEnableHTTPS возвращает нужно ли использовать https при запуске сервера
+func (c Configurator) IsEnableHTTPS() bool {
+	return c.enableHTTPS
 }
 
-// SetDBConnectString установка строки с параметрами для подключение к БД
-func (sp *configParams) SetDBConnectString(params string) error {
-	sp.dbConnectString = params
-
-	return nil
-}
-
-// GetDBConnectString получение строки с параметрами для подключения к БД
-func (sp *configParams) GetDBConnectString() string {
-	return sp.dbConnectString
-}
-
-// SetJWTSecret установка секрета для генерации jwt токенов пользователей
-func (sp *configParams) SetJWTSecret(secret string) error {
-	sp.jwtSecret = secret
-	return nil
-}
-
-// GetJWTSecret получение секрета для генерации jwt токенов пользователей
-func (sp *configParams) GetJWTSecret() string {
-	return sp.jwtSecret
-}
-
-// SetPProfOn установка параметра активности профилировщика
-func (sp *configParams) SetPProfOn(isOn bool) error {
-	sp.pProfOn = isOn
-
-	return nil
-}
-
-// IsPProfOn проверка активен профилировщик или нет
-func (sp *configParams) IsPProfOn() bool {
-	return sp.pProfOn
-}
-
-// SetPProfHost установка хоста для запуска профилировщика
-func (sp *configParams) SetPProfHost(host string) error {
-	sp.pProfHost = host
-
-	return nil
-}
-
-// GetPProfHost получение хоста для запуска профилировщика
-func (sp *configParams) GetPProfHost() string {
-	return sp.pProfHost
+// IsValid проверяет корректность настроек для работы проложения
+func (c Configurator) IsValid() bool {
+	return c.defaultHost != "" && c.defaultPort != "" && c.shortHost != "" && c.shortPort != "" && (c.fileStoragePath != "" || c.dbConnectString != "") && c.jwtSecret != ""
 }

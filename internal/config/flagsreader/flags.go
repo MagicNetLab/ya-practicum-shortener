@@ -1,4 +1,4 @@
-package flags
+package flagsreader
 
 import (
 	"flag"
@@ -6,14 +6,16 @@ import (
 )
 
 // Parse сбор параметров установленных в cli при запуске приложения.
-func Parse() CliConfigurator {
-	var conf cliConf
-	var defaultHost = ""
-	var shortHost = ""
-	var fileStorage = ""
-	var dbConnectString = ""
-	var jwtSecretKey = ""
-	var pProfHost = ""
+func Parse() CliConf {
+	var conf CliConf
+	var defaultHost string
+	var shortHost string
+	var fileStorage string
+	var dbConnectString string
+	var jwtSecretKey string
+	var pProfHost string
+	var enableHTTPS string
+	var configFilePath string
 
 	flag.StringVar(&defaultHost, defaultHostKey, "", "Base address")
 	flag.StringVar(&shortHost, shortHostKey, "", "short links host")
@@ -21,6 +23,8 @@ func Parse() CliConfigurator {
 	flag.StringVar(&dbConnectString, dbConnectKey, "", "database connect param")
 	flag.StringVar(&jwtSecretKey, jwtSecret, "", "jwttoken secret")
 	flag.StringVar(&pProfHost, pProfKey, "", "pprof host")
+	flag.StringVar(&enableHTTPS, enableHTTPSKey, "", "enable https")
+	flag.StringVar(&configFilePath, configFileKey, "", "config file path")
 	flag.Parse()
 
 	dh := strings.Split(defaultHost, ":")
@@ -39,6 +43,11 @@ func Parse() CliConfigurator {
 	conf.dbConnectString = dbConnectString
 	conf.jwtSecret = jwtSecretKey
 	conf.pProfHost = pProfHost
+	if enableHTTPS != "" {
+		conf.hasEnableHTTPS = true
+		conf.enableHTTPS = enableHTTPS == "true"
+	}
+	conf.configFilePath = configFilePath
 
-	return &conf
+	return conf
 }

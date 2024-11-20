@@ -11,6 +11,7 @@ type configurator interface {
 	GetShortHost() string
 	IsValid() bool
 	GetPProfHost() string
+	IsEnableHTTPS() bool
 }
 
 type route struct {

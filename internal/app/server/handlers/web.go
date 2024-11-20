@@ -7,8 +7,8 @@ import (
 
 	"github.com/go-chi/chi/v5"
 
-	"github.com/MagicNetLab/ya-practicum-shortener/internal/app/storage"
-	"github.com/MagicNetLab/ya-practicum-shortener/internal/app/storage/postgres"
+	"github.com/MagicNetLab/ya-practicum-shortener/internal/app/repo"
+	"github.com/MagicNetLab/ya-practicum-shortener/internal/app/repo/postgres"
 	"github.com/MagicNetLab/ya-practicum-shortener/internal/config"
 	"github.com/MagicNetLab/ya-practicum-shortener/internal/service/logger"
 )
@@ -57,14 +57,8 @@ func decodeHandler() http.HandlerFunc {
 		}
 
 		short := chi.URLParam(r, "short")
-		store, err := storage.GetStore()
-		if err != nil {
-			args := map[string]interface{}{"error": err.Error()}
-			logger.Error("failed get store", args)
-			http.Error(w, "Internal Server Error", http.StatusInternalServerError)
-		}
 
-		link, isDeleted, err := store.GetLink(r.Context(), short)
+		link, isDeleted, err := repo.GetLink(r.Context(), short)
 		if err != nil {
 			http.Error(w, http.StatusText(http.StatusNotFound), http.StatusNotFound)
 			return

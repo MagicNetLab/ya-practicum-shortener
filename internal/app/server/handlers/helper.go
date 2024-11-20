@@ -10,33 +10,26 @@ import (
 
 	"github.com/golang-jwt/jwt/v4"
 
+	"github.com/MagicNetLab/ya-practicum-shortener/internal/app/repo"
+	"github.com/MagicNetLab/ya-practicum-shortener/internal/app/repo/memory"
+	"github.com/MagicNetLab/ya-practicum-shortener/internal/app/repo/postgres"
 	"github.com/MagicNetLab/ya-practicum-shortener/internal/app/shortgen"
-	"github.com/MagicNetLab/ya-practicum-shortener/internal/app/storage"
-	"github.com/MagicNetLab/ya-practicum-shortener/internal/app/storage/local"
-	"github.com/MagicNetLab/ya-practicum-shortener/internal/app/storage/postgres"
 	"github.com/MagicNetLab/ya-practicum-shortener/internal/config"
 	"github.com/MagicNetLab/ya-practicum-shortener/internal/service/jwttoken"
 	"github.com/MagicNetLab/ya-practicum-shortener/internal/service/logger"
 )
 
 func getShortLink(ctx context.Context, url string, userID int) (short string, httpResponseStatus int) {
-	store, err := storage.GetStore()
-	if err != nil {
-		args := map[string]interface{}{"error": err.Error()}
-		logger.Error("error initializing storage", args)
-		return "", http.StatusInternalServerError
-	}
-
 	short = shortgen.GetShortLink(7)
 	httpResponseStatus = http.StatusCreated
-	err = store.PutLink(ctx, url, short, userID)
+	err := repo.PutLink(ctx, url, short, userID)
 	if err != nil {
 		httpResponseStatus = http.StatusInternalServerError
 		args := map[string]interface{}{"error": err.Error()}
 		logger.Error("error storing short link", args)
-		notUniqueError := errors.Is(err, postgres.ErrLinkUniqueConflict) || errors.Is(err, local.ErrorLinkNotUnique)
+		notUniqueError := errors.Is(err, postgres.ErrLinkUniqueConflict) || errors.Is(err, memory.ErrorLinkNotUnique)
 		if notUniqueError {
-			short, err = store.GetShort(ctx, url)
+			short, err = repo.GetShort(ctx, url)
 			if err == nil {
 				httpResponseStatus = http.StatusConflict
 			}
@@ -135,16 +128,9 @@ func deleteLinks(shorts []string, userID int) {
 		return
 	}
 
-	store, err := storage.GetStore()
-	if err != nil {
-		args := map[string]interface{}{"error": err.Error()}
-		logger.Error("error initializing storage", args)
-		return
-	}
-
 	ctx, cancel := context.WithTimeout(context.Background(), time.Second*3)
 	defer cancel()
-	err = store.DeleteBatchLinksArray(ctx, shorts, userID)
+	err := repo.DeleteBatchLinksArray(ctx, shorts, userID)
 	if err != nil {
 		args := map[string]interface{}{"error": err.Error()}
 		logger.Error("error deleting short links", args)

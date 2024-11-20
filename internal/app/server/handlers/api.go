@@ -6,9 +6,9 @@ import (
 	"fmt"
 	"net/http"
 
+	"github.com/MagicNetLab/ya-practicum-shortener/internal/app/repo"
+	"github.com/MagicNetLab/ya-practicum-shortener/internal/app/repo/postgres"
 	"github.com/MagicNetLab/ya-practicum-shortener/internal/app/shortgen"
-	"github.com/MagicNetLab/ya-practicum-shortener/internal/app/storage"
-	"github.com/MagicNetLab/ya-practicum-shortener/internal/app/storage/postgres"
 	"github.com/MagicNetLab/ya-practicum-shortener/internal/config"
 	"github.com/MagicNetLab/ya-practicum-shortener/internal/service/logger"
 )
@@ -74,14 +74,6 @@ func apiBatchEncodeHandler() http.HandlerFunc {
 			return
 		}
 
-		store, err := storage.GetStore()
-		if err != nil {
-			args := map[string]interface{}{"error": err.Error()}
-			logger.Error("failed to get store", args)
-			http.Error(w, "Internal Server Error", http.StatusInternalServerError)
-			return
-		}
-
 		var response APIBatchResponse
 		storeData := make(map[string]string)
 		c := config.GetParams()
@@ -95,7 +87,7 @@ func apiBatchEncodeHandler() http.HandlerFunc {
 			response = append(response, row)
 		}
 
-		err = store.PutBatchLinksArray(r.Context(), storeData, userID)
+		err = repo.PutBatchLinksArray(r.Context(), storeData, userID)
 		if err != nil {
 			if errors.Is(err, postgres.ErrLinkUniqueConflict) {
 				http.Error(w, "Conflict: one or more links are not unique", http.StatusConflict)
@@ -131,15 +123,7 @@ func apiListUserLinksHandler() http.HandlerFunc {
 			return
 		}
 
-		store, err := storage.GetStore()
-		if err != nil {
-			args := map[string]interface{}{"error": err.Error()}
-			logger.Error("failed to get store", args)
-			http.Error(w, "Internal Server Error", http.StatusInternalServerError)
-			return
-		}
-
-		res, err := store.GetUserLinks(r.Context(), userID)
+		res, err := repo.GetUserLinks(r.Context(), userID)
 		if err != nil {
 			args := map[string]interface{}{"error": err.Error()}
 			logger.Error("failed get user links", args)

@@ -12,7 +12,7 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
-	"github.com/MagicNetLab/ya-practicum-shortener/internal/app/storage"
+	"github.com/MagicNetLab/ya-practicum-shortener/internal/app/repo"
 	"github.com/MagicNetLab/ya-practicum-shortener/internal/config"
 	"github.com/MagicNetLab/ya-practicum-shortener/internal/service/jwttoken"
 )
@@ -91,10 +91,18 @@ func Test_encodeLinkHeader(t *testing.T) {
 		},
 	}
 
+	c := config.GetParams()
+	if !c.IsValid() {
+		errConf := config.Initialize()
+		assert.NoError(t, errConf)
+		errConf = repo.Initialize(config.GetParams())
+		assert.NoError(t, errConf)
+		c = config.GetParams()
+	}
+
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			request := httptest.NewRequest(tt.method, tt.request, strings.NewReader(tt.body))
-			c := config.GetParams()
 			cookieName := "token"
 			if tt.cookies == false {
 				cookieName = "tokien"
@@ -124,16 +132,22 @@ func Test_encodeLinkHeader(t *testing.T) {
 
 func Test_encodeLinkByUnique(t *testing.T) {
 	t.Run("test send not unique link", func(t *testing.T) {
-		store, err := storage.GetStore()
-		assert.NoError(t, err)
+		c := config.GetParams()
+		if !c.IsValid() {
+			errConf := config.Initialize()
+			assert.NoError(t, errConf)
+			errConf = repo.Initialize(config.GetParams())
+			assert.NoError(t, errConf)
+			c = config.GetParams()
+		}
+
 		link := "https://cloud.ru"
 		userID := 3
 
-		err = store.PutLink(context.Background(), link, "uweyiu", userID)
+		err := repo.PutLink(context.Background(), link, "uweyiu", userID)
 		assert.NoError(t, err)
 
 		request := httptest.NewRequest(http.MethodPost, "/", strings.NewReader(link))
-		c := config.GetParams()
 		token, _ := jwttoken.GenerateToken(userID, c.GetJWTSecret())
 		newCookie := http.Cookie{Name: "token", Value: token, Path: "/", Expires: time.Now().Add(5 * time.Minute)}
 		request.AddCookie(&newCookie)
@@ -200,21 +214,26 @@ func Test_decodeLinkHeader(t *testing.T) {
 		// todo success get link
 	}
 
+	c := config.GetParams()
+	if !c.IsValid() {
+		errConf := config.Initialize()
+		assert.NoError(t, errConf)
+		errConf = repo.Initialize(config.GetParams())
+		assert.NoError(t, errConf)
+		c = config.GetParams()
+	}
+
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			if tt.deleted {
-				store, err := storage.GetStore()
+				err := repo.PutLink(context.Background(), "http://test.link", "jsdhkahs", 3)
 				assert.NoError(t, err)
 
-				err = store.PutLink(context.Background(), "http://test.link", "jsdhkahs", 3)
-				assert.NoError(t, err)
-
-				err = store.DeleteBatchLinksArray(context.Background(), []string{"jsdhkahs"}, 3)
+				err = repo.DeleteBatchLinksArray(context.Background(), []string{"jsdhkahs"}, 3)
 				assert.NoError(t, err)
 			}
 
 			request := httptest.NewRequest(tt.method, tt.request, nil)
-			c := config.GetParams()
 			token, _ := jwttoken.GenerateToken(3, c.GetJWTSecret())
 			newCookie := http.Cookie{Name: "token", Value: token, Path: "/", Expires: time.Now().Add(5 * time.Minute)}
 			request.AddCookie(&newCookie)
