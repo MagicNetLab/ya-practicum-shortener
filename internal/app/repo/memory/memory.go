@@ -128,7 +128,7 @@ func (s *Store) DeleteBatchLinksArray(ctx context.Context, shorts []string, user
 func (s *Store) GetLinksCount(ctx context.Context) (int, error) {
 	var count int
 	for _, v := range s.data {
-		if v.isDeleted == false {
+		if !v.isDeleted {
 			count++
 		}
 	}
@@ -140,7 +140,7 @@ func (s *Store) GetLinksCount(ctx context.Context) (int, error) {
 func (s *Store) GetUsersCount(ctx context.Context) (int, error) {
 	var users []int
 	for _, v := range s.data {
-		if slices.Contains(users, v.userID) == false {
+		if !slices.Contains(users, v.userID) {
 			users = append(users, v.userID)
 		}
 	}
