@@ -39,7 +39,6 @@ func init() {
 		args := map[string]interface{}{"error": err.Error()}
 		logger.Fatal("Failed to initialize storage", args)
 	}
-
 }
 
 func main() {

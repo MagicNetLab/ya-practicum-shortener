@@ -1,10 +1,12 @@
 package handlers
 
 import (
+	"context"
 	"encoding/json"
 	"errors"
 	"fmt"
 	"net/http"
+	"time"
 
 	"github.com/MagicNetLab/ya-practicum-shortener/internal/app/repo"
 	"github.com/MagicNetLab/ya-practicum-shortener/internal/app/repo/postgres"
@@ -186,6 +188,40 @@ func deleteUserLinksHandler() http.HandlerFunc {
 		w.Header().Set("content-type", "application/json")
 		w.WriteHeader(http.StatusAccepted)
 		if err := json.NewEncoder(w).Encode("ok"); err != nil {
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+		}
+	}
+}
+
+func apiInternalStatsHandler() http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		if r.Method != http.MethodGet {
+			http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
+			return
+		}
+		ctx, cancel := context.WithTimeout(r.Context(), time.Second*5)
+		defer cancel()
+
+		urls, err := repo.GetLinksCount(ctx)
+		if err != nil {
+			args := map[string]interface{}{"error": err.Error()}
+			logger.Error("failed get links count", args)
+			http.Error(w, "Internal Server Error", http.StatusInternalServerError)
+			return
+		}
+
+		users, err := repo.GetUsersCount(ctx)
+		if err != nil {
+			args := map[string]interface{}{"error": err.Error()}
+			logger.Error("failed get users count", args)
+			http.Error(w, "Internal Server Error", http.StatusInternalServerError)
+			return
+		}
+
+		response := APIInternalStatsResponse{Urls: urls, Users: users}
+		w.Header().Set("content-type", "application/json")
+		w.WriteHeader(http.StatusOK)
+		if err := json.NewEncoder(w).Encode(response); err != nil {
 			http.Error(w, err.Error(), http.StatusInternalServerError)
 		}
 	}

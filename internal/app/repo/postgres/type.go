@@ -26,11 +26,13 @@ const (
 )
 
 const (
-	insertLinkSQL   = "INSERT INTO links (short, link, user_id) VALUES ($1, $2, $3)"
-	selectLinkSQL   = "SELECT link, is_deleted FROM links WHERE short = $1"
-	selectShortSQL  = "SELECT short FROM links WHERE link = $1"
-	hasLinkSQL      = "SELECT count(*) FROM links WHERE short = $1"
-	selectUserLinks = "SELECT short, link FROM links WHERE user_id = $1"
+	insertLinkSQL    = "INSERT INTO links (short, link, user_id) VALUES ($1, $2, $3)"
+	selectLinkSQL    = "SELECT link, is_deleted FROM links WHERE short = $1"
+	selectShortSQL   = "SELECT short FROM links WHERE link = $1"
+	hasLinkSQL       = "SELECT count(*) FROM links WHERE short = $1"
+	selectUserLinks  = "SELECT short, link FROM links WHERE user_id = $1"
+	selectLinksCount = "SELECT count(*) as linksCount FROM links WHERE is_deleted = false"
+	selectUsersCount = "SELECT count(distinct(links.user_id)) FROM links"
 )
 
 // ErrLinkUniqueConflict ошибка попытки записать не уникальную ссылку
@@ -178,6 +180,32 @@ func (s *Store) DeleteBatchLinksArray(ctx context.Context, shorts []string, user
 	}
 
 	return nil
+}
+
+// GetLinksCount возвращает количество сокращенных силок в системе
+func (s *Store) GetLinksCount(ctx context.Context) (int, error) {
+	var count int
+
+	row := s.pool.QueryRow(ctx, selectLinksCount)
+	err := row.Scan(&count)
+	if err != nil {
+		return 0, errors.New("database error: " + err.Error())
+	}
+
+	return count, nil
+}
+
+// GetUsersCount возвращает количество пользователей в системе
+func (s *Store) GetUsersCount(ctx context.Context) (int, error) {
+	var count int
+
+	row := s.pool.QueryRow(ctx, selectUsersCount)
+	err := row.Scan(&count)
+	if err != nil {
+		return 0, errors.New("database error: " + err.Error())
+	}
+
+	return count, nil
 }
 
 // Initialize инициализация хранилища

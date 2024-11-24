@@ -39,3 +39,9 @@ type UserLinksResponse []UserLinkEntity
 
 // APIDeleteRequest структура запроса при пакетном удалении ссылок пользователя
 type APIDeleteRequest []string
+
+// APIInternalStatsResponse структура ответа при запросе статистики сервера
+type APIInternalStatsResponse struct {
+	Urls  int `json:"urls"`
+	Users int `json:"users"`
+}

@@ -64,6 +64,12 @@ func GetHandlers() MapHandlers {
 		Path:    "/api/user/urls",
 		Handler: applyAuthMiddleware(applyDefaultMiddlewares(deleteUserLinksHandler())),
 	}
+	handlers["serverStats"] = RouteHandler{
+		Host:    c.GetDefaultHost(),
+		Method:  http.MethodGet,
+		Path:    "/api/internal/stats",
+		Handler: applyTrustedMiddleware(applyDefaultMiddlewares(apiInternalStatsHandler())),
+	}
 
 	return handlers
 }

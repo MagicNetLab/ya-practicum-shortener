@@ -11,6 +11,7 @@ const (
 	pProfKey        = "p"
 	enableHTTPSKey  = "s"
 	configFileKey   = "c"
+	trustedSubnet   = "t"
 )
 
 // CliConf параметры приложения собранные из флагов указанных при запуске
@@ -26,6 +27,7 @@ type CliConf struct {
 	enableHTTPS     bool
 	hasEnableHTTPS  bool
 	configFilePath  string
+	trustedSubnet   string
 }
 
 // GetDefaultHost возвращает базовый хост для запуска приложения
@@ -109,4 +111,12 @@ func (c CliConf) GetConfigFilePath() (string, error) {
 	}
 
 	return c.configFilePath, nil
+}
+
+// GetTrustedSubnet Возвращает адрес доверенной сети для доступа к статистике сервера
+func (c CliConf) GetTrustedSubnet() (string, error) {
+	if c.trustedSubnet == "" {
+		return "", errors.New("trusted subnet not set")
+	}
+	return c.trustedSubnet, nil
 }

@@ -14,6 +14,7 @@ require (
 	github.com/lib/pq v1.10.9
 	github.com/stretchr/testify v1.9.0
 	go.uber.org/zap v1.27.0
+	golang.org/x/exp v0.0.0-20231110203233-9a3e6036ecaa
 	golang.org/x/tools v0.21.1-0.20240531212143-b6235391adb3
 	honnef.co/go/tools v0.5.1
 )

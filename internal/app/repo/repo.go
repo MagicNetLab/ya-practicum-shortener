@@ -65,3 +65,13 @@ func GetUserLinks(ctx context.Context, userID int) (map[string]string, error) {
 func DeleteBatchLinksArray(ctx context.Context, shorts []string, userID int) error {
 	return driver.DeleteBatchLinksArray(ctx, shorts, userID)
 }
+
+// GetLinksCount возвращает количество сокращенных силок в системе
+func GetLinksCount(ctx context.Context) (int, error) {
+	return driver.GetLinksCount(ctx)
+}
+
+// GetUsersCount возвращает количество пользователей в системе
+func GetUsersCount(ctx context.Context) (int, error) {
+	return driver.GetUsersCount(ctx)
+}
