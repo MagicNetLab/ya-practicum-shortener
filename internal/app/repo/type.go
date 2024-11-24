@@ -33,6 +33,12 @@ type Driver interface {
 	// DeleteBatchLinksArray пометка массива ссылок пользователя как удаленных
 	DeleteBatchLinksArray(ctx context.Context, shorts []string, userID int) error
 
+	// GetLinksCount возвращает количество сокращенных ссылок в системе
+	GetLinksCount(ctx context.Context) (int, error)
+
+	// GetUsersCount возвращает количество пользователей в системе
+	GetUsersCount(ctx context.Context) (int, error)
+
 	// Initialize инициализация хранилища
 	Initialize(config *config.Configurator) error
 

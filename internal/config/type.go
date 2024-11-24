@@ -24,6 +24,8 @@ type ParamsReader interface {
 	HasEnableHTTPS() bool
 	// GetConfigFilePath возвращает имя файла с json конфигурацией
 	GetConfigFilePath() (string, error)
+	// GetTrustedSubnet возвращает вдрес доверенной сети для просмотра статистики сервера
+	GetTrustedSubnet() (string, error)
 }
 
 // Configurator хранилище параметров для запуска и работы приложения
@@ -37,6 +39,7 @@ type Configurator struct {
 	jwtSecret       string
 	pProfHost       string
 	enableHTTPS     bool
+	trustedSubnet   string
 }
 
 // GetDefaultHost возвращает хост для запуска приложения
@@ -77,4 +80,9 @@ func (c Configurator) IsEnableHTTPS() bool {
 // IsValid проверяет корректность настроек для работы проложения
 func (c Configurator) IsValid() bool {
 	return c.defaultHost != "" && c.defaultPort != "" && c.shortHost != "" && c.shortPort != "" && (c.fileStoragePath != "" || c.dbConnectString != "") && c.jwtSecret != ""
+}
+
+// GetTrustedSubnet возвращает адрес доверенной сети для доступа к статистике сервера
+func (c Configurator) GetTrustedSubnet() string {
+	return c.trustedSubnet
 }

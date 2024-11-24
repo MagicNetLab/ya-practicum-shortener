@@ -8,6 +8,8 @@ import (
 	"fmt"
 	"os"
 
+	"golang.org/x/exp/slices"
+
 	"github.com/MagicNetLab/ya-practicum-shortener/internal/config"
 	"github.com/MagicNetLab/ya-practicum-shortener/internal/service/logger"
 )
@@ -120,6 +122,30 @@ func (s *Store) DeleteBatchLinksArray(ctx context.Context, shorts []string, user
 	}
 
 	return nil
+}
+
+// GetLinksCount возвращает количество сокращенных ссылок в системе
+func (s *Store) GetLinksCount(ctx context.Context) (int, error) {
+	var count int
+	for _, v := range s.data {
+		if v.isDeleted == false {
+			count++
+		}
+	}
+
+	return count, nil
+}
+
+// GetUsersCount возвращает количество пользователей в системе
+func (s *Store) GetUsersCount(ctx context.Context) (int, error) {
+	var users []int
+	for _, v := range s.data {
+		if slices.Contains(users, v.userID) == false {
+			users = append(users, v.userID)
+		}
+	}
+
+	return len(users), nil
 }
 
 // Initialize инициализация хранилища
