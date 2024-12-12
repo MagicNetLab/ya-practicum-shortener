@@ -1,10 +1,11 @@
-package handlers
+package rest
 
 import (
 	"context"
 	"encoding/json"
 	"errors"
 	"fmt"
+	"github.com/MagicNetLab/ya-practicum-shortener/internal/service/link"
 	"net/http"
 	"time"
 
@@ -183,7 +184,7 @@ func deleteUserLinksHandler() http.HandlerFunc {
 			return
 		}
 
-		go batchDeleteLinks(r.Context(), deleteRequest, userID)
+		go link.BatchDeleteLinks(r.Context(), deleteRequest, userID)
 
 		w.Header().Set("content-type", "application/json")
 		w.WriteHeader(http.StatusAccepted)

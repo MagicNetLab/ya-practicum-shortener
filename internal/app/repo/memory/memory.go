@@ -21,8 +21,49 @@ func GetStore() *Store {
 
 // Store объект хранилища данных
 type Store struct {
-	data map[string]linkEntity
-	file string
+	data  map[string]linkEntity
+	users []UserEntity
+	file  string
+}
+
+// HasUserLogin проверка занятости логина пользователя
+func (s *Store) HasUserLogin(ctx context.Context, login string) (bool, error) {
+	for _, u := range s.users {
+		if u.Login == login {
+			return true, nil
+		}
+	}
+
+	return false, nil
+}
+
+// AuthUser аутентификация пользователя
+func (s *Store) AuthUser(ctx context.Context, login string, secret string) (int64, error) {
+	for _, u := range s.users {
+		if u.Login == login && u.Secret == secret {
+			return u.ID, nil
+		}
+	}
+
+	return 0, errors.New("user not found")
+}
+
+// CreateUser создание пользователя
+func (s *Store) CreateUser(ctx context.Context, login string, secret string) (bool, error) {
+	var maxID int64
+	for _, u := range s.users {
+		if u.ID > maxID {
+			maxID = u.ID
+		}
+	}
+
+	s.users = append(s.users, UserEntity{
+		ID:     maxID + 1,
+		Login:  login,
+		Secret: secret,
+	})
+
+	return true, nil
 }
 
 // PutLink сохранение ссылки пользователя в хранилище.

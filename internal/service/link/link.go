@@ -1,27 +1,25 @@
-package handlers
+package link
 
 import (
-	"context"
 	"errors"
-	"fmt"
-	"net/http"
-	"sync"
-	"time"
-
-	"github.com/golang-jwt/jwt/v4"
-
 	"github.com/MagicNetLab/ya-practicum-shortener/internal/app/repo"
 	"github.com/MagicNetLab/ya-practicum-shortener/internal/app/repo/memory"
 	"github.com/MagicNetLab/ya-practicum-shortener/internal/app/repo/postgres"
 	"github.com/MagicNetLab/ya-practicum-shortener/internal/app/shortgen"
-	"github.com/MagicNetLab/ya-practicum-shortener/internal/config"
-	"github.com/MagicNetLab/ya-practicum-shortener/internal/service/jwttoken"
 	"github.com/MagicNetLab/ya-practicum-shortener/internal/service/logger"
+	"golang.org/x/net/context"
+	"net/http"
+	"sync"
+	"time"
 )
 
-func getShortLink(ctx context.Context, url string, userID int) (short string, httpResponseStatus int) {
+// Shorten Сокращение ссылки присланной пользователем
+func Shorten(url string, userID int) (short string, httpResponseStatus int) {
 	short = shortgen.GetShortLink(7)
 	httpResponseStatus = http.StatusCreated
+	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	defer cancel()
+
 	err := repo.PutLink(ctx, url, short, userID)
 	if err != nil {
 		httpResponseStatus = http.StatusInternalServerError
@@ -39,43 +37,8 @@ func getShortLink(ctx context.Context, url string, userID int) (short string, ht
 	return short, httpResponseStatus
 }
 
-func getUserID(tokenString string) (int, error) {
-	claims := &jwttoken.Claims{}
-	token, err := jwt.ParseWithClaims(tokenString, claims,
-		func(t *jwt.Token) (interface{}, error) {
-			if _, ok := t.Method.(*jwt.SigningMethodHMAC); !ok {
-				return nil, fmt.Errorf("unexpected signing method: %v", t.Header["alg"])
-			}
-			appConfig := config.GetParams()
-			return []byte(appConfig.GetJWTSecret()), nil
-		})
-	if err != nil {
-		return 0, errors.New("failed get user_id: invalid token")
-	}
-
-	if !token.Valid {
-		fmt.Println("Token is not valid")
-		return 0, errors.New("failed get user_id: invalid token")
-	}
-
-	return claims.UserID, nil
-}
-
-func parseCookie(r *http.Request) (int, error) {
-	cookie, err := r.Cookie("token")
-	if err != nil || cookie.Value == "" {
-		return 0, fmt.Errorf("failed parse cookie %v", err)
-	}
-
-	userID, err := getUserID(cookie.Value)
-	if err != nil {
-		return 0, fmt.Errorf("failed get userID from cookie %v", err)
-	}
-
-	return userID, nil
-}
-
-func batchDeleteLinks(ctx context.Context, shorts []string, userID int) {
+// BatchDeleteLinks пакетное удаление ссылок пользователя
+func BatchDeleteLinks(ctx context.Context, shorts []string, userID int) {
 	doneCh := make(chan struct{})
 	defer close(doneCh)
 

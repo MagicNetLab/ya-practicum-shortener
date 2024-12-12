@@ -12,6 +12,15 @@ var ErrorLinkNotUnique = errors.New("link not unique")
 
 // Driver интерфейс драйвера хранения данных
 type Driver interface {
+	// HasUserLogin проверка занятости логина пользователя
+	HasUserLogin(ctx context.Context, username string) (bool, error)
+
+	// AuthUser аутентификация пользователя
+	AuthUser(ctx context.Context, username string, secret string) (int64, error)
+
+	// CreateUser создание пользователя
+	CreateUser(ctx context.Context, username string, secret string) (bool, error)
+
 	// PutLink сохранение ссылки пользователя в хранилище.
 	PutLink(ctx context.Context, link string, short string, userID int) error
 

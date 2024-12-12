@@ -1,4 +1,4 @@
-package handlers
+package rest
 
 import (
 	"context"
@@ -107,7 +107,7 @@ func Test_encodeLinkHeader(t *testing.T) {
 			if tt.cookies == false {
 				cookieName = "tokien"
 			}
-			token, _ := jwttoken.GenerateToken(tt.userID, c.GetJWTSecret())
+			token, _ := jwttoken.GenerateToken(int64(tt.userID), c.GetJWTSecret())
 			newCookie := http.Cookie{Name: cookieName, Value: token, Path: "/", Expires: time.Now().Add(5 * time.Minute)}
 			request.AddCookie(&newCookie)
 
@@ -148,7 +148,7 @@ func Test_encodeLinkByUnique(t *testing.T) {
 		assert.NoError(t, err)
 
 		request := httptest.NewRequest(http.MethodPost, "/", strings.NewReader(link))
-		token, _ := jwttoken.GenerateToken(userID, c.GetJWTSecret())
+		token, _ := jwttoken.GenerateToken(int64(userID), c.GetJWTSecret())
 		newCookie := http.Cookie{Name: "token", Value: token, Path: "/", Expires: time.Now().Add(5 * time.Minute)}
 		request.AddCookie(&newCookie)
 

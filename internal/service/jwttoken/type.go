@@ -12,5 +12,5 @@ const TokenLifeTime = time.Hour * 3
 // Claims структура токена
 type Claims struct {
 	jwt.RegisteredClaims
-	UserID int
+	UserID int64
 }

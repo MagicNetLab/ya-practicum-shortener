@@ -2,10 +2,10 @@ package repo
 
 import (
 	"context"
-
 	"github.com/MagicNetLab/ya-practicum-shortener/internal/app/repo/memory"
 	"github.com/MagicNetLab/ya-practicum-shortener/internal/app/repo/postgres"
 	"github.com/MagicNetLab/ya-practicum-shortener/internal/config"
+	"log"
 )
 
 var driver Driver
@@ -18,6 +18,8 @@ func Initialize(conf *config.Configurator) error {
 		driver = memory.GetStore()
 	}
 
+	log.Println(conf.GetDBConnectString())
+
 	err := driver.Initialize(conf)
 	if err != nil {
 		return err
@@ -29,6 +31,21 @@ func Initialize(conf *config.Configurator) error {
 // Close закрывает репозиторий
 func Close() error {
 	return driver.Close()
+}
+
+// HasUserLogin проверка занятости логина пользователя
+func HasUserLogin(ctx context.Context, username string) (bool, error) {
+	return driver.HasUserLogin(ctx, username)
+}
+
+// AuthUser аутентификация пользователя
+func AuthUser(ctx context.Context, username string, secret string) (int64, error) {
+	return driver.AuthUser(ctx, username, secret)
+}
+
+// CreateUser создание пользователя
+func CreateUser(ctx context.Context, username string, secret string) (bool, error) {
+	return driver.CreateUser(ctx, username, secret)
 }
 
 // PutLink сохраняет ссылку в хранилище

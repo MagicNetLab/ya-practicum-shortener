@@ -1,4 +1,4 @@
-package handlers
+package rest
 
 // APIRequest структура запроса для создания короткой ссылки
 type APIRequest struct {

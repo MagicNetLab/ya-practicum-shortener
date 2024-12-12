@@ -1,4 +1,4 @@
-package handlers
+package rest
 
 import (
 	"context"
@@ -341,7 +341,7 @@ func Test_apiListUserLinksHandler(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			request := httptest.NewRequest(tt.method, tt.request, strings.NewReader(""))
-			token, _ := jwttoken.GenerateToken(tt.userID, c.GetJWTSecret())
+			token, _ := jwttoken.GenerateToken(int64(tt.userID), c.GetJWTSecret())
 			newCookie := http.Cookie{Name: "token", Value: token, Path: "/", Expires: time.Now().Add(5 * time.Minute)}
 			request.AddCookie(&newCookie)
 
