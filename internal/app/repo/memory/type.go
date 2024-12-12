@@ -18,5 +18,11 @@ type StoreEntity struct {
 	IsDeleted bool   `json:"is_deleted"`
 }
 
+type UserEntity struct {
+	ID     int64  `json:"id"`
+	Login  string `json:"login"`
+	Secret string `json:"secret"`
+}
+
 // ErrorLinkNotUnique ошибка в случае попытки сохранения уже существующей в базе ссылки
 var ErrorLinkNotUnique = errors.New("link not unique")

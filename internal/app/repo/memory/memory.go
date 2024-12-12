@@ -8,6 +8,8 @@ import (
 	"fmt"
 	"os"
 
+	"golang.org/x/exp/slices"
+
 	"github.com/MagicNetLab/ya-practicum-shortener/internal/config"
 	"github.com/MagicNetLab/ya-practicum-shortener/internal/service/logger"
 )
@@ -19,8 +21,49 @@ func GetStore() *Store {
 
 // Store объект хранилища данных
 type Store struct {
-	data map[string]linkEntity
-	file string
+	data  map[string]linkEntity
+	users []UserEntity
+	file  string
+}
+
+// HasUserLogin проверка занятости логина пользователя
+func (s *Store) HasUserLogin(ctx context.Context, login string) (bool, error) {
+	for _, u := range s.users {
+		if u.Login == login {
+			return true, nil
+		}
+	}
+
+	return false, nil
+}
+
+// AuthUser аутентификация пользователя
+func (s *Store) AuthUser(ctx context.Context, login string, secret string) (int64, error) {
+	for _, u := range s.users {
+		if u.Login == login && u.Secret == secret {
+			return u.ID, nil
+		}
+	}
+
+	return 0, errors.New("user not found")
+}
+
+// CreateUser создание пользователя
+func (s *Store) CreateUser(ctx context.Context, login string, secret string) (bool, error) {
+	var maxID int64
+	for _, u := range s.users {
+		if u.ID > maxID {
+			maxID = u.ID
+		}
+	}
+
+	s.users = append(s.users, UserEntity{
+		ID:     maxID + 1,
+		Login:  login,
+		Secret: secret,
+	})
+
+	return true, nil
 }
 
 // PutLink сохранение ссылки пользователя в хранилище.
@@ -120,6 +163,30 @@ func (s *Store) DeleteBatchLinksArray(ctx context.Context, shorts []string, user
 	}
 
 	return nil
+}
+
+// GetLinksCount возвращает количество сокращенных ссылок в системе
+func (s *Store) GetLinksCount(ctx context.Context) (int, error) {
+	var count int
+	for _, v := range s.data {
+		if !v.isDeleted {
+			count++
+		}
+	}
+
+	return count, nil
+}
+
+// GetUsersCount возвращает количество пользователей в системе
+func (s *Store) GetUsersCount(ctx context.Context) (int, error) {
+	var users []int
+	for _, v := range s.data {
+		if !slices.Contains(users, v.userID) {
+			users = append(users, v.userID)
+		}
+	}
+
+	return len(users), nil
 }
 
 // Initialize инициализация хранилища

@@ -65,5 +65,9 @@ func Parse() Configurator {
 		envConf.configFilePath = configFilePath
 	}
 
+	if trustedSubnet := os.Getenv("TRUSTED_SUBNET"); trustedSubnet != "" {
+		envConf.trustedSubnet = trustedSubnet
+	}
+
 	return envConf
 }
