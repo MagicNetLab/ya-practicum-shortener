@@ -34,7 +34,7 @@ const (
 	selectLinksCount          = "SELECT count(*) as linksCount FROM links WHERE is_deleted = false"
 	selectUsersCount          = "SELECT count(distinct(links.user_id)) FROM links"
 	existsUserLogin           = "SELECT count(id) FROM users WHERE login = $1"
-	getUserIdByLoginAndSecret = "SELECT id FROM users WHERE login = $1 AND secret = $2"
+	getUserIDByLoginAndSecret = "SELECT id FROM users WHERE login = $1 AND secret = $2"
 	createUser                = "INSERT INTO users (login, secret) VALUES ($1, $2)"
 )
 
@@ -63,13 +63,13 @@ func (s *Store) HasUserLogin(ctx context.Context, login string) (bool, error) {
 
 // AuthUser аутентификация пользователя
 func (s *Store) AuthUser(ctx context.Context, login string, secret string) (int64, error) {
-	var userId int64
-	err := s.pool.QueryRow(ctx, getUserIdByLoginAndSecret, login, secret).Scan(&userId)
+	var userID int64
+	err := s.pool.QueryRow(ctx, getUserIDByLoginAndSecret, login, secret).Scan(&userID)
 	if err != nil {
 		return 0, err
 	}
 
-	return userId, nil
+	return userID, nil
 }
 
 // CreateUser создание пользователя

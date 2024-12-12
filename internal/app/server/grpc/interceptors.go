@@ -141,12 +141,12 @@ func TrustedNetworkInterceptor(ctx context.Context, req interface{}, info *grpc.
 		return nil, status.Errorf(codes.PermissionDenied, "permission denied")
 	}
 
-	realIp := md.Get(trustedSubnetHeader)
-	if len(realIp) == 0 {
+	realIP := md.Get(trustedSubnetHeader)
+	if len(realIP) == 0 {
 		return nil, status.Errorf(codes.PermissionDenied, "permission denied")
 	}
 
-	ip := realIp[0]
+	ip := realIP[0]
 	conf := config.GetParams()
 	trustedSubnet := conf.GetTrustedSubnet()
 	if ip == "" || trustedSubnet == "" || ip != trustedSubnet {

@@ -66,6 +66,7 @@ func TestServer_UserAuth(t *testing.T) {
 	req = pb.UserAuthRequest{Login: "login", Secret: "secret2"}
 	resp, err = s.UserAuth(ctx, &req)
 	assert.NotNil(t, err)
+	assert.Nil(t, resp)
 	assert.ErrorIs(t, err, status.Error(codes.NotFound, "failed authentication"))
 }
 
