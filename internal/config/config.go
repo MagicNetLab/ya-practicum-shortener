@@ -14,6 +14,10 @@ var AppConfig Configurator
 
 // Initialize инициализация конфигурации приложения
 func Initialize() error {
+	if AppConfig.IsValid() {
+		return nil
+	}
+
 	var confFile string
 	setDefaultParams()
 	envConf := envreader.Parse()

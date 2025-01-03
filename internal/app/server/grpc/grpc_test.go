@@ -14,7 +14,7 @@ import (
 	"github.com/MagicNetLab/ya-practicum-shortener/internal/app/repo"
 	"github.com/MagicNetLab/ya-practicum-shortener/internal/config"
 	"github.com/MagicNetLab/ya-practicum-shortener/internal/service/jwttoken"
-	pb "github.com/MagicNetLab/ya-practicum-shortener/pkg/shortener_proto"
+	pb "github.com/MagicNetLab/ya-practicum-shortener/pkg/shortener_grpc"
 )
 
 // TestServer_UserRegister тест регистрации пользователя

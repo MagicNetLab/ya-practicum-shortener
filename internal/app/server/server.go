@@ -15,10 +15,9 @@ import (
 
 	"github.com/MagicNetLab/ya-practicum-shortener/internal/app/repo"
 	grpcServer "github.com/MagicNetLab/ya-practicum-shortener/internal/app/server/grpc"
-	//handle "github.com/MagicNetLab/ya-practicum-shortener/internal/app/server/handlers"
 	restServer "github.com/MagicNetLab/ya-practicum-shortener/internal/app/server/rest"
 	"github.com/MagicNetLab/ya-practicum-shortener/internal/service/logger"
-	pb "github.com/MagicNetLab/ya-practicum-shortener/pkg/shortener_proto"
+	pb "github.com/MagicNetLab/ya-practicum-shortener/pkg/shortener_grpc"
 )
 
 var runServers []*http.Server

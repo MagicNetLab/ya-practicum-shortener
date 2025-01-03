@@ -18,7 +18,7 @@ import (
 	"github.com/MagicNetLab/ya-practicum-shortener/internal/service/link"
 	"github.com/MagicNetLab/ya-practicum-shortener/internal/service/logger"
 	"github.com/MagicNetLab/ya-practicum-shortener/internal/service/user"
-	pb "github.com/MagicNetLab/ya-practicum-shortener/pkg/shortener_proto"
+	pb "github.com/MagicNetLab/ya-practicum-shortener/pkg/shortener_grpc"
 )
 
 // Server сервер
