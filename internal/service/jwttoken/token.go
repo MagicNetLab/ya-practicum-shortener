@@ -12,11 +12,7 @@ import (
 // ValidateToken Валидация jwt токена пользователя
 func ValidateToken(tokenString string, jwtSecret string) bool {
 	_, err := parseToken(tokenString, jwtSecret)
-	if err != nil {
-		return false
-	}
-
-	return true
+	return err == nil
 }
 
 // GenerateToken генерация jwt токена для пользователя
