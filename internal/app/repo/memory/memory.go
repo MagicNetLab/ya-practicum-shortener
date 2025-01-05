@@ -22,27 +22,22 @@ func GetStore() *Store {
 // Store объект хранилища данных
 type Store struct {
 	data  map[string]linkEntity
-	users []UserEntity
+	users map[string]UserEntity
+	maxID int64
 	file  string
 }
 
 // HasUserLogin проверка занятости логина пользователя
 func (s *Store) HasUserLogin(ctx context.Context, login string) (bool, error) {
-	for _, u := range s.users {
-		if u.Login == login {
-			return true, nil
-		}
-	}
-
-	return false, nil
+	_, exists := s.users[login]
+	return exists, nil
 }
 
 // AuthUser аутентификация пользователя
 func (s *Store) AuthUser(ctx context.Context, login string, secret string) (int64, error) {
-	for _, u := range s.users {
-		if u.Login == login && u.Secret == secret {
-			return u.ID, nil
-		}
+	user, ok := s.users[login]
+	if ok && user.Secret == secret {
+		return user.ID, nil
 	}
 
 	return 0, errors.New("user not found")
@@ -50,18 +45,13 @@ func (s *Store) AuthUser(ctx context.Context, login string, secret string) (int6
 
 // CreateUser создание пользователя
 func (s *Store) CreateUser(ctx context.Context, login string, secret string) (bool, error) {
-	var maxID int64
-	for _, u := range s.users {
-		if u.ID > maxID {
-			maxID = u.ID
-		}
-	}
-
-	s.users = append(s.users, UserEntity{
-		ID:     maxID + 1,
+	s.maxID++
+	s.users[login] = UserEntity{
+		ID:     s.maxID,
 		Login:  login,
 		Secret: secret,
-	})
+	}
+	s.maxID++
 
 	return true, nil
 }
@@ -192,6 +182,7 @@ func (s *Store) GetUsersCount(ctx context.Context) (int, error) {
 // Initialize инициализация хранилища
 func (s *Store) Initialize(config *config.Configurator) error {
 	s.data = make(map[string]linkEntity, 10)
+	s.users = make(map[string]UserEntity, 10)
 	if s.file = config.GetFileStoragePath(); s.file != "" {
 		err := s.loadFromFile()
 		if err != nil {
@@ -282,6 +273,9 @@ func (s *Store) loadFromFile() error {
 			}
 
 			data = append(data, row)
+			if int64(row.UserID) > s.maxID {
+				s.maxID = int64(row.UserID)
+			}
 		}
 
 		for _, v := range data {

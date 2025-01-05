@@ -13,6 +13,7 @@ type Configurator struct {
 	DataBaseDSN     string `json:"database_dsn"`
 	EnableHTTPS     bool   `json:"enable_https"`
 	TrustedSubnet   string `json:"trusted_subnet"`
+	GrpcPort        string `json:"grpc_port"`
 }
 
 // GetDefaultHost возвращает базовый хост для запуска приложения
@@ -114,4 +115,12 @@ func (c Configurator) GetTrustedSubnet() (string, error) {
 		return "", errors.New("no trusted subnet specified")
 	}
 	return c.TrustedSubnet, nil
+}
+
+// GetGRPCPort возвращает номер порта для запуска grpc сервера
+func (c Configurator) GetGRPCPort() (string, error) {
+	if c.GrpcPort == "" {
+		return "", errors.New("no grpc port specified")
+	}
+	return c.GrpcPort, nil
 }

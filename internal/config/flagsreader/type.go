@@ -12,6 +12,7 @@ const (
 	enableHTTPSKey  = "s"
 	configFileKey   = "c"
 	trustedSubnet   = "t"
+	grpcPortKey     = "g"
 )
 
 // CliConf параметры приложения собранные из флагов указанных при запуске
@@ -28,6 +29,7 @@ type CliConf struct {
 	hasEnableHTTPS  bool
 	configFilePath  string
 	trustedSubnet   string
+	grpcPort        string
 }
 
 // GetDefaultHost возвращает базовый хост для запуска приложения
@@ -119,4 +121,12 @@ func (c CliConf) GetTrustedSubnet() (string, error) {
 		return "", errors.New("trusted subnet not set")
 	}
 	return c.trustedSubnet, nil
+}
+
+// GetGRPCPort возвращает номер порта для запуска grpc сервера
+func (c CliConf) GetGRPCPort() (string, error) {
+	if c.grpcPort == "" {
+		return "", errors.New("grpc port not set")
+	}
+	return c.grpcPort, nil
 }

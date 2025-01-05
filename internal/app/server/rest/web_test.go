@@ -107,7 +107,8 @@ func Test_encodeLinkHeader(t *testing.T) {
 			if tt.cookies == false {
 				cookieName = "tokien"
 			}
-			token, _ := jwttoken.GenerateToken(int64(tt.userID), c.GetJWTSecret())
+			token, err := jwttoken.GenerateToken(int64(tt.userID), c.GetJWTSecret())
+			assert.NoError(t, err)
 			newCookie := http.Cookie{Name: cookieName, Value: token, Path: "/", Expires: time.Now().Add(5 * time.Minute)}
 			request.AddCookie(&newCookie)
 
@@ -148,7 +149,8 @@ func Test_encodeLinkByUnique(t *testing.T) {
 		assert.NoError(t, err)
 
 		request := httptest.NewRequest(http.MethodPost, "/", strings.NewReader(link))
-		token, _ := jwttoken.GenerateToken(int64(userID), c.GetJWTSecret())
+		token, err := jwttoken.GenerateToken(int64(userID), c.GetJWTSecret())
+		assert.NoError(t, err)
 		newCookie := http.Cookie{Name: "token", Value: token, Path: "/", Expires: time.Now().Add(5 * time.Minute)}
 		request.AddCookie(&newCookie)
 
@@ -234,7 +236,8 @@ func Test_decodeLinkHeader(t *testing.T) {
 			}
 
 			request := httptest.NewRequest(tt.method, tt.request, nil)
-			token, _ := jwttoken.GenerateToken(3, c.GetJWTSecret())
+			token, err := jwttoken.GenerateToken(3, c.GetJWTSecret())
+			assert.NoError(t, err)
 			newCookie := http.Cookie{Name: "token", Value: token, Path: "/", Expires: time.Now().Add(5 * time.Minute)}
 			request.AddCookie(&newCookie)
 
@@ -244,7 +247,7 @@ func Test_decodeLinkHeader(t *testing.T) {
 			h(w, request)
 
 			result := w.Result()
-			err := result.Body.Close()
+			err = result.Body.Close()
 			require.NoError(t, err)
 
 			assert.Equal(t, tt.want.statusCode, result.StatusCode)

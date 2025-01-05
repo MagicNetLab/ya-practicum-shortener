@@ -10,8 +10,8 @@ import (
 // ErrorLinkNotUnique ошибка в случае попытки сохранения уже существующей в базе ссылки
 var ErrorLinkNotUnique = errors.New("link not unique")
 
-// Driver интерфейс драйвера хранения данных
-type Driver interface {
+// Repository интерфейс драйвера хранения данных
+type Repository interface {
 	// HasUserLogin проверка занятости логина пользователя
 	HasUserLogin(ctx context.Context, username string) (bool, error)
 

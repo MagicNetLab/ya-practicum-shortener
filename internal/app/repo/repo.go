@@ -8,7 +8,7 @@ import (
 	"log"
 )
 
-var driver Driver
+var driver Repository
 
 // Initialize инициализация репозитория
 func Initialize(conf *config.Configurator) error {

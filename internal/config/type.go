@@ -26,6 +26,8 @@ type ParamsReader interface {
 	GetConfigFilePath() (string, error)
 	// GetTrustedSubnet возвращает вдрес доверенной сети для просмотра статистики сервера
 	GetTrustedSubnet() (string, error)
+	// GetGRPCPort возвращает номер порта для запуска grpc сервера
+	GetGRPCPort() (string, error)
 }
 
 // Configurator хранилище параметров для запуска и работы приложения
@@ -40,6 +42,7 @@ type Configurator struct {
 	pProfHost       string
 	enableHTTPS     bool
 	trustedSubnet   string
+	grpcPort        string
 }
 
 // GetDefaultHost возвращает хост для запуска приложения
@@ -85,4 +88,9 @@ func (c Configurator) IsValid() bool {
 // GetTrustedSubnet возвращает адрес доверенной сети для доступа к статистике сервера
 func (c Configurator) GetTrustedSubnet() string {
 	return c.trustedSubnet
+}
+
+// GetGRPCPort возвращает номер порта для запуска grpc сервера
+func (c Configurator) GetGRPCPort() string {
+	return c.grpcPort
 }

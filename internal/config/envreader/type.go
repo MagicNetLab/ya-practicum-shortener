@@ -13,6 +13,7 @@ type Configurator struct {
 	enableHTTPS     bool     `env:"ENABLE_HTTPS" envDefault:"false"`
 	configFilePath  string   `env:"CONFIG"`
 	trustedSubnet   string   `env:"TRUSTED_SUBNET"`
+	grpcPort        string   `env:"GRPC_PORT" envDefault:"3200"`
 }
 
 // GetDefaultHost возвращает базовый хост для запуска приложения
@@ -103,4 +104,12 @@ func (c Configurator) GetTrustedSubnet() (string, error) {
 		return "", errors.New("trusted subnet not set")
 	}
 	return c.trustedSubnet, nil
+}
+
+// GetGRPCPort возвращает номер порта для запуска grpc сервера
+func (c Configurator) GetGRPCPort() (string, error) {
+	if c.grpcPort == "" {
+		return "", errors.New("grpc port not set")
+	}
+	return c.grpcPort, nil
 }

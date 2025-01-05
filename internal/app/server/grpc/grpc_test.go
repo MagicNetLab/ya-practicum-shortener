@@ -141,7 +141,7 @@ func TestServer_BatchEncodeLink(t *testing.T) {
 	assert.NotNil(t, resp.Link)
 
 	links := resp.GetLink()
-	assert.Len(t, links, 6)
+	assert.Len(t, links, 3)
 
 	resp, err = s.BatchEncodeLink(ctx, &req)
 	assert.Nil(t, resp)

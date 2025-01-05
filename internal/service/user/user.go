@@ -74,5 +74,5 @@ func randString(n int) (string, error) {
 		return "", errors.New("error generating random string")
 	}
 
-	return hex.EncodeToString(b), nil
+	return hex.EncodeToString(b)[:n], nil
 }

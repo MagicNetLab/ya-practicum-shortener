@@ -107,10 +107,22 @@ func (s *Server) BatchEncodeLink(ctx context.Context, r *pb.EncodeBatchLinksRequ
 	}
 
 	links := r.GetLinks()
-	resultLinks := make([]*pb.EncodeBatchLinksResponseEntity, len(links))
+	resultLinks := make([]*pb.EncodeBatchLinksResponseEntity, 0, len(links))
 	storeData := make(map[string]string)
 	for _, l := range links {
-		short := shortgen.GetShortLink(7)
+		var short string
+		for i := 0; i < 6; i++ {
+			s := shortgen.GetShortLink(7)
+			exists, err := repo.HasShort(ctx, s)
+			if err != nil {
+				return nil, status.Error(codes.Internal, "failed generate short link")
+			}
+			if !exists {
+				short = s
+				break
+			}
+		}
+
 		row := pb.EncodeBatchLinksResponseEntity{
 			CorrelationID: l.GetCorrelationID(),
 			ShortURL:      formingShortLink(short),

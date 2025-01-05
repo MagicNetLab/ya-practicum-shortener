@@ -11,20 +11,8 @@ import (
 
 // ValidateToken Валидация jwt токена пользователя
 func ValidateToken(tokenString string, jwtSecret string) bool {
-	claims := &Claims{}
-	token, err := jwt.ParseWithClaims(tokenString, claims,
-		func(t *jwt.Token) (interface{}, error) {
-			if _, ok := t.Method.(*jwt.SigningMethodHMAC); !ok {
-				return nil, fmt.Errorf("unexpected signing method: %v", t.Header["alg"])
-			}
-
-			return []byte(jwtSecret), nil
-		})
+	_, err := parseToken(tokenString, jwtSecret)
 	if err != nil {
-		return false
-	}
-
-	if !token.Valid {
 		return false
 	}
 
@@ -49,23 +37,31 @@ func GenerateToken(userID int64, jwtSecret string) (string, error) {
 
 // GetUserIDFromToken получение userID из токена
 func GetUserIDFromToken(tokenString string) (int64, error) {
+	appConfig := config.GetParams()
+	claims, err := parseToken(tokenString, appConfig.GetJWTSecret())
+	if err != nil {
+		return 0, errors.New("failed get user_id: invalid token")
+	}
+
+	return claims.UserID, nil
+}
+
+func parseToken(tokenString string, jwtSecret string) (*Claims, error) {
 	claims := &Claims{}
 	token, err := jwt.ParseWithClaims(tokenString, claims,
 		func(t *jwt.Token) (interface{}, error) {
 			if _, ok := t.Method.(*jwt.SigningMethodHMAC); !ok {
 				return nil, fmt.Errorf("unexpected signing method: %v", t.Header["alg"])
 			}
-			appConfig := config.GetParams()
-			return []byte(appConfig.GetJWTSecret()), nil
+			return []byte(jwtSecret), nil
 		})
 	if err != nil {
-		return 0, errors.New("failed get user_id: invalid token")
+		return claims, errors.New("failed check token: invalid token")
 	}
 
 	if !token.Valid {
-		fmt.Println("Token is not valid")
-		return 0, errors.New("failed get user_id: invalid token")
+		return claims, errors.New("failed check token: invalid token")
 	}
 
-	return claims.UserID, nil
+	return claims, nil
 }

@@ -108,6 +108,11 @@ func appendParams(reader ParamsReader) {
 	if err == nil {
 		AppConfig.trustedSubnet = trustedSubnet
 	}
+
+	grpcPort, err := reader.GetGRPCPort()
+	if err == nil {
+		AppConfig.grpcPort = grpcPort
+	}
 }
 
 func getRandomSecret() string {

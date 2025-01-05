@@ -17,6 +17,7 @@ func Parse() CliConf {
 	var enableHTTPS string
 	var configFilePath string
 	var trustedSubnetAddr string
+	var grpcPort string
 
 	flag.StringVar(&defaultHost, defaultHostKey, "", "Base address")
 	flag.StringVar(&shortHost, shortHostKey, "", "short links host")
@@ -27,6 +28,7 @@ func Parse() CliConf {
 	flag.StringVar(&enableHTTPS, enableHTTPSKey, "", "enable https")
 	flag.StringVar(&configFilePath, configFileKey, "", "config file path")
 	flag.StringVar(&trustedSubnetAddr, trustedSubnet, "", "trusted subnet address")
+	flag.StringVar(&grpcPort, grpcPortKey, "", "grpc port")
 	flag.Parse()
 
 	dh := strings.Split(defaultHost, ":")
@@ -51,6 +53,7 @@ func Parse() CliConf {
 	}
 	conf.configFilePath = configFilePath
 	conf.trustedSubnet = trustedSubnetAddr
+	conf.grpcPort = grpcPort
 
 	return conf
 }

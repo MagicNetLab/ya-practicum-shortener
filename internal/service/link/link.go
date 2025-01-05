@@ -76,8 +76,8 @@ func BatchDeleteLinks(ctx context.Context, shorts []string, userID int) {
 					}
 				case <-doneCh:
 					return
-				default:
-					time.Sleep(100 * time.Millisecond)
+				case <-ctx.Done():
+					return
 				}
 			}
 		}(inputCh)
