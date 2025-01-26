@@ -12,6 +12,8 @@ type Configurator struct {
 	FileStoragePath string `json:"file_storage_path"`
 	DataBaseDSN     string `json:"database_dsn"`
 	EnableHTTPS     bool   `json:"enable_https"`
+	TrustedSubnet   string `json:"trusted_subnet"`
+	GrpcPort        string `json:"grpc_port"`
 }
 
 // GetDefaultHost возвращает базовый хост для запуска приложения
@@ -105,4 +107,20 @@ func (c Configurator) HasEnableHTTPS() bool {
 // GetConfigFilePath возвращает путь до файла с json конфигурацией (заглушка для интерфейса)
 func (c Configurator) GetConfigFilePath() (string, error) {
 	return "", errors.New("no config file path specified")
+}
+
+// GetTrustedSubnet возвращает адрес доверенной сети для доступа к статистике сервера
+func (c Configurator) GetTrustedSubnet() (string, error) {
+	if c.TrustedSubnet == "" {
+		return "", errors.New("no trusted subnet specified")
+	}
+	return c.TrustedSubnet, nil
+}
+
+// GetGRPCPort возвращает номер порта для запуска grpc сервера
+func (c Configurator) GetGRPCPort() (string, error) {
+	if c.GrpcPort == "" {
+		return "", errors.New("no grpc port specified")
+	}
+	return c.GrpcPort, nil
 }

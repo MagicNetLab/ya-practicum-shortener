@@ -12,6 +12,7 @@ type configurator interface {
 	IsValid() bool
 	GetPProfHost() string
 	IsEnableHTTPS() bool
+	GetGRPCPort() string
 }
 
 type route struct {

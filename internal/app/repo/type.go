@@ -10,8 +10,17 @@ import (
 // ErrorLinkNotUnique ошибка в случае попытки сохранения уже существующей в базе ссылки
 var ErrorLinkNotUnique = errors.New("link not unique")
 
-// Driver интерфейс драйвера хранения данных
-type Driver interface {
+// Repository интерфейс драйвера хранения данных
+type Repository interface {
+	// HasUserLogin проверка занятости логина пользователя
+	HasUserLogin(ctx context.Context, username string) (bool, error)
+
+	// AuthUser аутентификация пользователя
+	AuthUser(ctx context.Context, username string, secret string) (int64, error)
+
+	// CreateUser создание пользователя
+	CreateUser(ctx context.Context, username string, secret string) (bool, error)
+
 	// PutLink сохранение ссылки пользователя в хранилище.
 	PutLink(ctx context.Context, link string, short string, userID int) error
 
@@ -32,6 +41,12 @@ type Driver interface {
 
 	// DeleteBatchLinksArray пометка массива ссылок пользователя как удаленных
 	DeleteBatchLinksArray(ctx context.Context, shorts []string, userID int) error
+
+	// GetLinksCount возвращает количество сокращенных ссылок в системе
+	GetLinksCount(ctx context.Context) (int, error)
+
+	// GetUsersCount возвращает количество пользователей в системе
+	GetUsersCount(ctx context.Context) (int, error)
 
 	// Initialize инициализация хранилища
 	Initialize(config *config.Configurator) error

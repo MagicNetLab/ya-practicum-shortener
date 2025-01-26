@@ -4,7 +4,6 @@ import (
 	"crypto/rand"
 	"encoding/hex"
 	"errors"
-
 	"github.com/MagicNetLab/ya-practicum-shortener/internal/config/envreader"
 	"github.com/MagicNetLab/ya-practicum-shortener/internal/config/flagsreader"
 	"github.com/MagicNetLab/ya-practicum-shortener/internal/config/jsonreader"
@@ -15,6 +14,10 @@ var AppConfig Configurator
 
 // Initialize инициализация конфигурации приложения
 func Initialize() error {
+	if AppConfig.IsValid() {
+		return nil
+	}
+
 	var confFile string
 	setDefaultParams()
 	envConf := envreader.Parse()
@@ -99,6 +102,16 @@ func appendParams(reader ParamsReader) {
 
 	if reader.HasEnableHTTPS() {
 		AppConfig.enableHTTPS = reader.GetIsEnableHTTPS()
+	}
+
+	trustedSubnet, err := reader.GetTrustedSubnet()
+	if err == nil {
+		AppConfig.trustedSubnet = trustedSubnet
+	}
+
+	grpcPort, err := reader.GetGRPCPort()
+	if err == nil {
+		AppConfig.grpcPort = grpcPort
 	}
 }
 

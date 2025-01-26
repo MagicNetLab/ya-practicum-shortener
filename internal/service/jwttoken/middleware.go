@@ -56,9 +56,14 @@ func TokenMiddleware(h http.HandlerFunc) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		appConfig := config.GetParams()
 		cookie, err := r.Cookie("token")
-		if err != nil || !validateToken(cookie.Value, appConfig.GetJWTSecret()) {
-			u := user.Create()
-			token, err := GenerateToken(u.ID, appConfig.GetJWTSecret())
+		if err != nil || !ValidateToken(cookie.Value, appConfig.GetJWTSecret()) {
+			userID, err := user.Create("", "")
+			if err != nil {
+				http.Error(w, "Internal Server Error", http.StatusInternalServerError)
+				return
+			}
+
+			token, err := GenerateToken(userID, appConfig.GetJWTSecret())
 			if err != nil {
 				args := map[string]interface{}{"error": err.Error()}
 				logger.Error("failed to generate token", args)

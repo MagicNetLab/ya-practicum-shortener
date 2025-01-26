@@ -2,13 +2,13 @@ package repo
 
 import (
 	"context"
-
 	"github.com/MagicNetLab/ya-practicum-shortener/internal/app/repo/memory"
 	"github.com/MagicNetLab/ya-practicum-shortener/internal/app/repo/postgres"
 	"github.com/MagicNetLab/ya-practicum-shortener/internal/config"
+	"log"
 )
 
-var driver Driver
+var driver Repository
 
 // Initialize инициализация репозитория
 func Initialize(conf *config.Configurator) error {
@@ -17,6 +17,8 @@ func Initialize(conf *config.Configurator) error {
 	} else {
 		driver = memory.GetStore()
 	}
+
+	log.Println(conf.GetDBConnectString())
 
 	err := driver.Initialize(conf)
 	if err != nil {
@@ -29,6 +31,21 @@ func Initialize(conf *config.Configurator) error {
 // Close закрывает репозиторий
 func Close() error {
 	return driver.Close()
+}
+
+// HasUserLogin проверка занятости логина пользователя
+func HasUserLogin(ctx context.Context, username string) (bool, error) {
+	return driver.HasUserLogin(ctx, username)
+}
+
+// AuthUser аутентификация пользователя
+func AuthUser(ctx context.Context, username string, secret string) (int64, error) {
+	return driver.AuthUser(ctx, username, secret)
+}
+
+// CreateUser создание пользователя
+func CreateUser(ctx context.Context, username string, secret string) (bool, error) {
+	return driver.CreateUser(ctx, username, secret)
 }
 
 // PutLink сохраняет ссылку в хранилище
@@ -64,4 +81,14 @@ func GetUserLinks(ctx context.Context, userID int) (map[string]string, error) {
 // DeleteBatchLinksArray пометка массива ссылок пользователя как удаленных
 func DeleteBatchLinksArray(ctx context.Context, shorts []string, userID int) error {
 	return driver.DeleteBatchLinksArray(ctx, shorts, userID)
+}
+
+// GetLinksCount возвращает количество сокращенных силок в системе
+func GetLinksCount(ctx context.Context) (int, error) {
+	return driver.GetLinksCount(ctx)
+}
+
+// GetUsersCount возвращает количество пользователей в системе
+func GetUsersCount(ctx context.Context) (int, error) {
+	return driver.GetUsersCount(ctx)
 }

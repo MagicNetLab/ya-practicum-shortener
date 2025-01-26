@@ -8,6 +8,8 @@ import (
 	"fmt"
 	"os"
 
+	"golang.org/x/exp/slices"
+
 	"github.com/MagicNetLab/ya-practicum-shortener/internal/config"
 	"github.com/MagicNetLab/ya-practicum-shortener/internal/service/logger"
 )
@@ -19,8 +21,39 @@ func GetStore() *Store {
 
 // Store объект хранилища данных
 type Store struct {
-	data map[string]linkEntity
-	file string
+	data  map[string]linkEntity
+	users map[string]UserEntity
+	maxID int64
+	file  string
+}
+
+// HasUserLogin проверка занятости логина пользователя
+func (s *Store) HasUserLogin(ctx context.Context, login string) (bool, error) {
+	_, exists := s.users[login]
+	return exists, nil
+}
+
+// AuthUser аутентификация пользователя
+func (s *Store) AuthUser(ctx context.Context, login string, secret string) (int64, error) {
+	user, ok := s.users[login]
+	if ok && user.Secret == secret {
+		return user.ID, nil
+	}
+
+	return 0, errors.New("user not found")
+}
+
+// CreateUser создание пользователя
+func (s *Store) CreateUser(ctx context.Context, login string, secret string) (bool, error) {
+	s.maxID++
+	s.users[login] = UserEntity{
+		ID:     s.maxID,
+		Login:  login,
+		Secret: secret,
+	}
+	s.maxID++
+
+	return true, nil
 }
 
 // PutLink сохранение ссылки пользователя в хранилище.
@@ -122,9 +155,34 @@ func (s *Store) DeleteBatchLinksArray(ctx context.Context, shorts []string, user
 	return nil
 }
 
+// GetLinksCount возвращает количество сокращенных ссылок в системе
+func (s *Store) GetLinksCount(ctx context.Context) (int, error) {
+	var count int
+	for _, v := range s.data {
+		if !v.isDeleted {
+			count++
+		}
+	}
+
+	return count, nil
+}
+
+// GetUsersCount возвращает количество пользователей в системе
+func (s *Store) GetUsersCount(ctx context.Context) (int, error) {
+	var users []int
+	for _, v := range s.data {
+		if !slices.Contains(users, v.userID) {
+			users = append(users, v.userID)
+		}
+	}
+
+	return len(users), nil
+}
+
 // Initialize инициализация хранилища
 func (s *Store) Initialize(config *config.Configurator) error {
 	s.data = make(map[string]linkEntity, 10)
+	s.users = make(map[string]UserEntity, 10)
 	if s.file = config.GetFileStoragePath(); s.file != "" {
 		err := s.loadFromFile()
 		if err != nil {
@@ -215,6 +273,9 @@ func (s *Store) loadFromFile() error {
 			}
 
 			data = append(data, row)
+			if int64(row.UserID) > s.maxID {
+				s.maxID = int64(row.UserID)
+			}
 		}
 
 		for _, v := range data {

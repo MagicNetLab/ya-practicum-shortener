@@ -65,5 +65,13 @@ func Parse() Configurator {
 		envConf.configFilePath = configFilePath
 	}
 
+	if trustedSubnet := os.Getenv("TRUSTED_SUBNET"); trustedSubnet != "" {
+		envConf.trustedSubnet = trustedSubnet
+	}
+
+	if grpcPort := os.Getenv("GRPC_PORT"); grpcPort != "" {
+		envConf.grpcPort = grpcPort
+	}
+
 	return envConf
 }

@@ -12,6 +12,8 @@ type Configurator struct {
 	pProfHost       string   `env:"PPROF_HOST" envDefault:"localhost:5000"`
 	enableHTTPS     bool     `env:"ENABLE_HTTPS" envDefault:"false"`
 	configFilePath  string   `env:"CONFIG"`
+	trustedSubnet   string   `env:"TRUSTED_SUBNET"`
+	grpcPort        string   `env:"GRPC_PORT" envDefault:"3200"`
 }
 
 // GetDefaultHost возвращает базовый хост для запуска приложения
@@ -94,4 +96,20 @@ func (c Configurator) GetConfigFilePath() (string, error) {
 		return "", errors.New("config file path not set")
 	}
 	return c.configFilePath, nil
+}
+
+// GetTrustedSubnet возвращает адрес доверенной сети для доступа к статистике сервера
+func (c Configurator) GetTrustedSubnet() (string, error) {
+	if c.trustedSubnet == "" {
+		return "", errors.New("trusted subnet not set")
+	}
+	return c.trustedSubnet, nil
+}
+
+// GetGRPCPort возвращает номер порта для запуска grpc сервера
+func (c Configurator) GetGRPCPort() (string, error) {
+	if c.grpcPort == "" {
+		return "", errors.New("grpc port not set")
+	}
+	return c.grpcPort, nil
 }
